@@ -84,9 +84,9 @@ details.fold summary:hover{color:#94a3b8}
 code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-size:13px}
 </style></head><body><div id="app">
 <div id="side">
-<div class="brand"><span class="logo">⚡</span>Track 2 Advisor</div>
+<div class="brand"><span class="logo">T2</span>Track 2 Advisor</div>
 <button id="newchat" onclick="location.reload()">＋ New chat</button>
-<input type=text id="hsearch" placeholder="🔍 Search conversations" oninput="renderHist()">
+<input type=text id="hsearch" placeholder="Search conversations" oninput="renderHist()">
 <div id="hist" style="flex:1;overflow-y:auto"></div>
 <div class="meta" style="padding:8px">Zetaris · H-MEM · Nightshift</div>
 </div>
@@ -94,14 +94,15 @@ code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-siz
 <header><div><div class="t">Tech Stack Advisor <span class="badge">READ-ONLY</span></div><div class="sub"><span class="dot"></span>Connected to Zetaris · <span id="hmodel">Nightshift auto</span></div></div></header>
 <div id="log"><div class="wrap" id="feed"></div></div>
 <div id="composer"><div id="schema"></div>
+<div class="chips" id="starter" style="max-width:900px;margin:0 auto 8px"></div>
 <div class="box"><textarea id="q" rows=2 placeholder="Ask anything about your data…"></textarea>
-<div class="qrow"><span class="hint">Enter to send · Shift+Enter newline</span><button id="go" onclick="send()">➤</button></div></div></div>
+<div class="qrow"><span class="hint">Enter to send · Shift+Enter newline</span><button id="go" onclick="send()">Send</button></div></div></div>
 </div></div>
 <script>
 const feed=document.getElementById('feed'),q=document.getElementById('q'),go=document.getElementById('go');
 q.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 const TABLES=['advisor.all_repo_health_table','advisor.all_downloads_table','pokeapi.all_pokemon_stats_table','pokeapi.all_pokemon_types_table'];
-document.getElementById('schema').innerHTML='<span class="lbl" style="font-size:11px;color:#64748b">Tables:</span>'+TABLES.map(t=>'<span class="tchip" onclick="q.value+=(q.value?\' \':\'\')+\''+t+'\';q.focus()">🗄 '+t+'</span>').join('');
+document.getElementById('schema').innerHTML='<span class="lbl" style="font-size:11px;color:#64748b">Tables:</span>'+TABLES.map(t=>'<span class="tchip" onclick="q.value+=(q.value?\' \':\'\')+\''+t+'\';q.focus()">'+t+'</span>').join('');
 const SUGGEST=['Should we adopt React or Vue for a new web project?','Which Pokemon has the highest base stats and why?','Compare npm download counts of react and vue with evidence'];
 let aborter=null;
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
@@ -169,7 +170,7 @@ function renderHist(){
   let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}
   const f=(document.getElementById('hsearch').value||'').toLowerCase();
   const list=h.filter(e=>!f||e.q.toLowerCase().includes(f));
-  document.getElementById('hist').innerHTML=list.length?list.map((e,i)=>'<div class=hitem onclick="recallHist('+h.indexOf(e)+')">🕐 '+e.q.replace(/</g,'&lt;')+'</div>').join(''):'<div class=hitem>no chats yet</div>';
+  document.getElementById('hist').innerHTML=list.length?list.map((e,i)=>'<div class=hitem onclick="recallHist('+h.indexOf(e)+')">'>'+e.q.replace(/</g,'&lt;')+'</div>').join(''):'<div class=hitem>no chats yet</div>';
 }
 function recallHist(i){
   let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}
@@ -184,10 +185,10 @@ async function fb(traceQ,helpful,btn){
 async function send(preset){
   if(go.dataset.busy==='1'){if(aborter)aborter.abort();return;}
   const text=(preset!==undefined?preset:q.value).trim();if(!text)return;
-  q.value='';go.dataset.busy='1';go.innerHTML='■';go.classList.add('stop');
+  q.value='';go.dataset.busy='1';go.textContent='Stop';go.classList.add('stop');
   aborter=new AbortController();
   const t0=Date.now(),qid='q'+t0;
-  feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')">edit</span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span></div></div><div class=arow id=tmp><div class=aico>✦</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span></div></div>';
+  feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')">edit</span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span></div></div>';
   document.getElementById('log').scrollTop=1e9;
   const tick=setInterval(()=>{const el=document.getElementById('timer');if(el)el.textContent='Thinking… '+Math.floor((Date.now()-t0)/1000)+'s';},500);
   try{
@@ -197,19 +198,19 @@ async function send(preset){
     document.getElementById('tmp').remove();
     const secs=((d.elapsed_ms||(Date.now()-t0))/1000).toFixed(1);
     const aid='a'+t0;
-    const ev=(d.result.findings||[]).map((f,i)=>'<div class=card><div class=cardhead>🗄 '+esc(f.sources[0])+' <span class=n>'+f.rows_seen+' rows · '+(f.query_ms||0)+'ms · '+(f.live?'live':'sample')+'</span><button onclick="dlCSV(\'evidence-'+t0+'-'+i+'.csv\',\''+toCSV([f]).replace(/'/g,"\\'").replace(/\n/g,'\\n')+'\')">⬇ Export CSV</button></div>'+renderTable(f.sample_rows,f.columns)+'</div>').join('');
+    const ev=(d.result.findings||[]).map((f,i)=>'<div class=card><div class=cardhead>'+esc(f.sources[0])+' <span class=n>'+f.rows_seen+' rows · '+(f.query_ms||0)+'ms · '+(f.live?'live':'sample')+'</span><button onclick="dlCSV(\'evidence-'+t0+'-'+i+'.csv\',\''+toCSV([f]).replace(/'/g,"\\'").replace(/\n/g,'\\n')+'\')">Export CSV</button></div>'+renderTable(f.sample_rows,f.columns)+'</div>').join('');
     const bars=(d.result.findings||[]).map(f=>renderBars(f.sample_rows||[])).join('');
-    const sqls=(d.result.findings||[]).map((f,i)=>'<details class=sql><summary>🗄 View generated SQL — '+esc(f.sources[0])+' ('+(f.query_ms||0)+'ms) <button style="font-size:11px" onclick="event.preventDefault();copySQL(\''+aid+'-sql'+i+'\',this)">copy</button></summary><div class=sqlbox id='+aid+'-sql'+i+'>'+esc(f.sql)+'</div></details>').join('');
+    const sqls=(d.result.findings||[]).map((f,i)=>'<details class=sql><summary>View generated SQL — '+esc(f.sources[0])+' ('+(f.query_ms||0)+'ms) <button style="font-size:11px" onclick="event.preventDefault();copySQL(\''+aid+'-sql'+i+'\',this)">copy</button></summary><div class=sqlbox id='+aid+'-sql'+i+'>'+esc(f.sql)+'</div></details>').join('');
     const fups=followups(text,d.result.findings).map(f=>'<button onclick="send(\''+f.replace(/'/g,"\\'")+'\')">'+f.replace(/</g,'&lt;')+'</button>').join('');
     const modelLine=d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a';
-    feed.innerHTML+='<div class=arow id='+aid+'><div class=aico>✦</div><div class=abody>'+
+    feed.innerHTML+='<div class=arow id='+aid+'><div class=aico>AI</div><div class=abody>'+
       '<div class=ameta>Advisor <span>'+secs+'s · '+d.result.confidence+' confidence · '+modelLine+'</span></div>'+
       '<div class=ans id='+aid+'-body>'+md(d.result.summary)+'</div>'+
-      (bars?'<div class=card style="padding:14px 16px"><div style="font-size:12px;color:#94a3b8;margin-bottom:6px">📊 At a glance</div>'+bars+'</div>':'')+ev+sqls+
-      '<div class=actrow><button onclick="copyTxt(\''+aid+'-body\',this)" title="Copy answer">⧉</button>'+
-      '<button onclick="send(\''+text.replace(/'/g,"\\'")+'\')" title="Regenerate">↻</button>'+
-      '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',true,this)" title="Good answer">👍</button>'+
-      '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',false,this)" title="Bad answer">👎</button>'+
+      (bars?'<div class=card style="padding:14px 16px"><div style="font-size:12px;color:#94a3b8;margin-bottom:6px">At a glance</div>'+bars+'</div>':'')+ev+sqls+
+      '<div class=actrow><button onclick="copyTxt(\''+aid+'-body\',this)" title="Copy answer">Copy</button>'+
+      '<button onclick="send(\''+text.replace(/'/g,"\\'")+'\')" title="Regenerate">Retry</button>'+
+      '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',true,this)" title="Good answer">Good</button>'+
+      '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',false,this)" title="Bad answer">Bad</button>'+
       '<span class=stat>Thought for '+secs+'s · '+(d.agents_used||[]).join(' → ')+' · '+d.log_path+'</span></div>'+
       '<div class=chips>'+fups+'</div></div></div>';
     saveHist({q:text,t:t0,html:document.getElementById(aid).outerHTML});
@@ -219,7 +220,7 @@ async function send(preset){
     const tmp=document.getElementById('tmp');
     if(tmp)tmp.querySelector('.abody').innerHTML=e.name==='AbortError'?'Stopped by user.':'Error: '+e+' (is the server on :8000 running?)';
   }
-  go.dataset.busy='';go.innerHTML='➤';go.classList.remove('stop');
+  go.dataset.busy='';go.textContent='Send';go.classList.remove('stop');
   document.getElementById('log').scrollTop=1e9;
 }
 function editMsg(qid){
@@ -232,7 +233,7 @@ function editMsg(qid){
     if(e.key==='Escape'){inp.outerHTML='<span class=txt>'+txt.replace(/</g,'&lt;')+'</span>';}
   });
 }
-const SUGGEST=['Should we adopt React or Vue for a new web project?','Which Pokemon has the highest base stats and why?','Compare npm download counts of react and vue with evidence'];
 feed.innerHTML='<div class=chips>'+SUGGEST.map(s=>'<button onclick="send(\''+s.replace(/'/g,"\\'")+'\')">'+s+'</button>').join('')+'</div>';
+document.getElementById('starter').innerHTML=SUGGEST.map(s=>'<button onclick="send(\''+s.replace(/'/g,"\\'")+'\')">'+s+'</button>').join('');
 renderHist();
 </script></body></html>
