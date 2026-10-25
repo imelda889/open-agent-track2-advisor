@@ -1,12 +1,13 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>Track 2 Agent Chat</title>
 <style>body{font-family:Segoe UI,Arial,sans-serif;margin:0;background:#0f172a;color:#e2e8f0}
 #app{display:flex;min-height:100vh}
-#side{width:230px;background:#0b1220;padding:14px 10px;flex-shrink:0}
+#side{width:250px;background:#0b1220;padding:16px 12px;flex-shrink:0}
 #side h3{font-size:13px;color:#94a3b8;margin:4px 6px 10px;letter-spacing:1px}
-.hist{font-size:13px;padding:8px 10px;border-radius:8px;cursor:pointer;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist{font-size:14px;padding:9px 12px;border-radius:10px;cursor:pointer;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hist:hover{background:#1e293b}.hist small{color:#64748b;display:block}
-#main{flex:1;max-width:800px;margin:0 auto;padding:24px 16px}
-#log{background:#1e293b;border-radius:10px;padding:16px;min-height:300px;max-height:62vh;overflow:auto;scrollbar-width:thin;scrollbar-color:#38bdf8 #0b1220}
+#main{flex:1;max-width:1080px;margin:0 auto;padding:28px 28px;width:100%}
+#main h2{font-size:28px;margin:4px 0 14px}
+#log{background:#1e293b;border-radius:14px;padding:20px;min-height:46vh;max-height:66vh;overflow:auto;font-size:17px;scrollbar-width:thin;scrollbar-color:#38bdf8 #0b1220}
 #log::-webkit-scrollbar{width:8px}#log::-webkit-scrollbar-track{background:#0b1220;border-radius:8px}#log::-webkit-scrollbar-thumb{background:#334155;border-radius:8px}#log::-webkit-scrollbar-thumb:hover{background:#38bdf8}
 .u{text-align:right;margin:8px 0}.u span{background:#1d4ed8;border-radius:12px;padding:6px 12px;display:inline-block}
 .u .edit{font-size:11px;color:#93c5fd;cursor:pointer;margin-right:6px;opacity:0}.u:hover .edit{opacity:1}
@@ -21,8 +22,10 @@ details{margin-top:8px;font-size:13px;color:#94a3b8}summary{cursor:pointer;color
 .acts{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
 .acts button{font-size:12px;padding:4px 10px;background:#1e293b}
 .acts button.done{background:#065f46}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
-.chips button{font-size:12px;background:#0b1220;border:1px solid #38bdf8;color:#7dd3fc}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 14px}
+.chips button{font-size:14px;background:linear-gradient(180deg,#1e293b,#0f172a);border:1px solid #334155;color:#bae6fd;border-radius:999px;padding:9px 16px;cursor:pointer;transition:border-color .15s,transform .15s}
+.chips button:hover{border-color:#38bdf8;transform:translateY(-1px)}
+.chips button::before{content:'✨ ';}
 #row{display:flex;gap:8px;margin-top:12px}input#q{flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#020617;color:#e2e8f0}
 button#go{padding:10px 18px;border-radius:8px;border:0;background:#2563eb;color:#fff;cursor:pointer}button#go:disabled{background:#475569}
 code{background:#1e293b;padding:1px 6px;border-radius:5px;font-size:13px}</style>
