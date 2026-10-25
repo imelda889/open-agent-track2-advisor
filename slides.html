@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Track 2 — Tech Stack Advisor | Slide Deck</title>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--fg:#e2e8f0;--muted:#94a3b8;--acc:#38bdf8;--ok:#065f46}
+*{box-sizing:border-box}body{margin:0;background:#020617;color:var(--fg);font-family:"Segoe UI",Arial,sans-serif}
+.slide{display:none;min-height:100vh;padding:48px 64px;max-width:1100px;margin:0 auto}
+.slide.on{display:block}.k{color:var(--acc);letter-spacing:3px;font-size:13px;font-weight:700}
+h1{font-size:44px;margin:12px 0}h2{font-size:32px;margin:8px 0 16px}p,li{font-size:19px;line-height:1.55}
+.mut{color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.box{background:var(--card);border-radius:12px;padding:16px 20px}
+.pill{display:inline-block;background:var(--ok);border-radius:20px;padding:3px 14px;font-size:14px;margin:4px 6px 4px 0}
+table{border-collapse:collapse;width:100%;font-size:17px}th,td{border:1px solid #334155;padding:8px 12px;text-align:left}
+th{background:#0b1220}.flow{font-size:19px;background:var(--card);border-radius:12px;padding:18px;line-height:2}
+.flow b{color:var(--acc)}.notes{display:none;margin-top:28px;border-left:4px solid var(--acc);padding:10px 16px;background:#0b1220;font-size:16px;color:var(--muted)}
+body.shownotes .notes{display:block}
+.nav{position:fixed;bottom:14px;right:18px;color:var(--muted);font-size:13px}
+code{background:#020617;padding:2px 8px;border-radius:6px;font-size:16px}
+</style></head><body>
+
+<div class="slide on"><div class="k">OPEN AGENT HACKATHON 2026 · TRACK 2</div>
+<h1>Tech Stack Advisor</h1>
+<p>Evidence-backed framework recommendations.<br><span class="mut">Should we adopt React or Vue? Answered with live data, not opinions.</span></p>
+<p><span class="pill">Zetaris: live</span><span class="pill">Meterless H-MEM + Nightshift</span><span class="pill">NVIDIA Nemotron</span></p>
+<div class="notes">SPEAKER: 15 seconds. Name, track, one-liner. The question every tech lead asks, answered by an agent with citations.</div></div>
+
+<div class="slide"><div class="k">1 · PROBLEM &amp; USERS</div><h2>Choosing a framework is high-stakes guesswork</h2>
+<ul><li>Tech leads pick libraries on blog posts and vibes — a wrong bet costs months of rewrites.</li><li>Signals exist (stars, maintenance, downloads, CVEs) but live in 3+ places, go stale fast.</li><li><b>Users:</b> tech leads, startup CTOs, hackathon builders deciding tonight's stack.</li></ul>
+<div class="notes">SPEAKER: 20s. Real problem, real user. Impact 30 lives here: a decision-maker with a deadline, not a toy demo.</div></div>
+
+<div class="slide"><div class="k">2 · SOLUTION</div><h2>Ask in English. Get an answer with receipts.</h2>
+<div class="box"><code>POST /run {"user_query": "Should we adopt React or Vue?"}</code>
+<p>→ 6 seconds → verdict + per-claim sources + confidence + what the evidence does <i>not</i> cover.</p></div>
+<p class="mut">Real run: React 251K★ / 116M weekly downloads vs Vue 212K★ / 10M — verdict cites both tables.</p>
+<div class="notes">SPEAKER: 25s. This is the demo slide — say the numbers out loud, they are from a real run, not mockups.</div></div>
+
+<div class="slide"><div class="k">3 · AGENT ARCHITECTURE</div><h2>Planner ↔ Executor ↔ Evaluator, with memory</h2>
+<div class="flow"><b>ResearchPlanner</b> breaks the question into Zetaris queries<br>
+→ <b>Retriever</b> pulls live rows via Zetaris + recalls H-MEM<br>
+→ <b>EvidenceSummarizer</b> connects findings across sources<br>
+→ <b>InsightCritic</b> checks every claim is supported — <b>requests revision</b> if not<br>
+→ <b>ReportWriter</b> (Nightshift) writes the cited recommendation.<br>
+Every handoff → JSONL trace. H-MEM mines each run so the next one starts smarter.</div>
+<div class="notes">SPEAKER: 30s. Stress the loop: critic rejected a draft in our logs when evidence was thin — that is the difference from a pipeline.</div></div>
+
+<div class="slide"><div class="k">4 · TECH STACK</div><h2>Small, boring, reproducible</h2>
+<table><tr><th>Layer</th><th>Choice</th></tr>
+<tr><td>Agent runtime</td><td>Node + tsx, single <code>server.ts</code> (<code>POST /run</code>, <code>GET /health</code>)</td></tr>
+<tr><td>Data layer</td><td>Zetaris (local Docker): <code>advisor.*</code> REST views</td></tr>
+<tr><td>Memory</td><td>Meterless H-MEM reference (vendored, 10/10 smoke tests)</td></tr>
+<tr><td>AI provider</td><td>Meterless Nightshift → <code>meterless/auto</code> → NVIDIA Nemotron 3.5 Lightning 30B</td></tr>
+<tr><td>Repro</td><td><code>npm install → npm run setup → npx tsx server.ts</code></td></tr></table>
+<div class="notes">SPEAKER: 20s. Judges love boring-and-runnable. Point at the 3-command repro.</div></div>
+
+<div class="slide"><div class="k">5 · ZETARIS — HOW &amp; WHAT'S UNIQUE</div><h2>Two live REST sources, zero ETL</h2>
+<ul><li><code>advisor.all_repo_health_table</code> — GitHub: stars, forks, open issues, last push, license (~4s).</li>
+<li><code>advisor.all_downloads_table</code> — npm weekly downloads (~2s).</li>
+<li>Unique: custom REST registration with headers + nested-struct flattening views; union views make a 3rd framework a 2-line change.</li>
+<li>S3 sample DBs wired with LIMIT + honest <code>sample</code> fallback (never faked as live).</li></ul>
+<div class="notes">SPEAKER: 25s. Unique = union-view pattern + header auth + honest fallback. Mention the recipe files in getting-started.</div></div>
+
+<div class="slide"><div class="k">6 · METERLESS — HOW &amp; WHAT'S UNIQUE</div><h2>Memory that compounds + provider that routes</h2>
+<ul><li><b>H-MEM in a working feature:</b> every Zetaris result is mined into memory; next runs recall it (trace shows <code>Recalled N memories</code>). Sleep/ledger/audit all live in the notebook CLI.</li>
+<li><b>Nightshift as primary provider:</b> ReportWriter calls <code>meterless/auto</code>; router raced 2 models, picked Nemotron; <code>ai_provider.mode+model</code> logged per request.</li>
+<li>Unique: evidence → memory → recommendation is one loop; the critic's revision requests also land in memory.</li></ul>
+<div class="notes">SPEAKER: 25s. Two engines one story: memory makes retrieval better, Nightshift makes the final answer. Both visible in traces.</div></div>
+
+<div class="slide"><div class="k">7 · PRODUCT VISUALS</div><h2>What the judges see</h2>
+<div class="grid"><div class="box">📺 Demo video (1–4 min): Zetaris UI → <code>POST /run</code> (6s) → viewer.html verdict → trace excerpt.</div>
+<div class="box">🖥️ <code>viewer.html</code>: summary, per-source findings, confidence, model, revision count.</div></div>
+<p class="mut">Screenshots: viewer verdict card + trace log + Nightshift Providers (NVIDIA stored).</p>
+<div class="notes">SPEAKER: 15s. Show don't tell — screenshots of the actual artifacts, no mockups.</div></div>
+
+<div class="slide"><div class="k">8 · FUTURE WORK</div><h2>Where this goes next</h2>
+<ul><li>Third source: OSV vulnerabilities (needs POST — extend adapter) + vuejs/core (active repo) alongside vuejs/vue.</li><li>Markovian loop for multi-framework shootouts; Scout Intent to route question types.</li><li>Nightshift local lanes when VRAM allows; NVIDIA rerank for evidence ranking.</li></ul>
+<p class="mut">Thank you — repo, traces, and this deck are all reproducible from a clean clone.</p>
+<div class="notes">SPEAKER: 15s. End on honest limits + next steps. Total ~3 min with the video.</div></div>
+
+<div class="nav">← → navigate · N notes · <span id="n"></span></div>
+<script>let i=0;const s=[...document.querySelectorAll('.slide')];
+function go(n){i=(n+s.length)%s.length;s.forEach((e,k)=>e.classList.toggle('on',k===i));document.getElementById('n').textContent=(i+1)+'/'+s.length}
+addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' ')go(i+1);if(e.key==='ArrowLeft')go(i-1);if(e.key==='n'||e.key==='N')document.body.classList.toggle('shownotes')});go(0)</script>
+</body></html>
