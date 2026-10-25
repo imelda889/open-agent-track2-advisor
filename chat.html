@@ -1,24 +1,45 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>Track 2 Agent Chat</title>
-<style>body{font-family:Segoe UI,Arial,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;background:#0f172a;color:#e2e8f0}#log{background:#1e293b;border-radius:10px;padding:16px;min-height:300px;max-height:55vh;overflow:auto}.u{text-align:right;margin:8px 0}.u span{background:#1d4ed8;border-radius:12px;padding:6px 12px;display:inline-block}.a{background:#020617;border-radius:12px;padding:10px 12px;margin:8px 0}.a .ev{border-left:3px solid #38bdf8;padding-left:8px;margin:6px 0;font-size:13px}.meta{font-size:11px;color:#94a3b8}#row{display:flex;gap:8px;margin-top:12px}input{flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#020617;color:#e2e8f0}button{padding:10px 18px;border-radius:8px;border:0;background:#2563eb;color:#fff;cursor:pointer}button:disabled{background:#475569}</style>
-</head><body><h2>Track 2 Agent Chat (live :8000)</h2>
+<style>body{font-family:Segoe UI,Arial,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;background:#0f172a;color:#e2e8f0}
+#log{background:#1e293b;border-radius:10px;padding:16px;min-height:300px;max-height:60vh;overflow:auto}
+.u{text-align:right;margin:8px 0}.u span{background:#1d4ed8;border-radius:12px;padding:6px 12px;display:inline-block}
+.a{background:#020617;border-radius:12px;padding:10px 14px;margin:8px 0;font-size:15px;line-height:1.6}
+.a h4{margin:10px 0 4px}.a ul{margin:4px 0;padding-left:22px}.a li{margin:2px 0}
+details{margin-top:8px;font-size:13px;color:#94a3b8}summary{cursor:pointer;color:#38bdf8}
+.ev{border-left:3px solid #38bdf8;padding-left:8px;margin:6px 0}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid #334155;border-top-color:#38bdf8;border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-3px;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.meta{font-size:11px;color:#94a3b8;margin-top:8px}
+#row{display:flex;gap:8px;margin-top:12px}input{flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#020617;color:#e2e8f0}
+button{padding:10px 18px;border-radius:8px;border:0;background:#2563eb;color:#fff;cursor:pointer}button:disabled{background:#475569}
+code{background:#1e293b;padding:1px 6px;border-radius:5px;font-size:13px}</style>
+</head><body><h2>Track 2 Agent Chat</h2>
 <div id="log"></div>
-<div id="row"><input id="q" placeholder="Ask, e.g. Which Pokemon has the highest base stats and why?"><button id="go" onclick="send()">Send</button></div>
+<div id="row"><input id="q" placeholder="Ask, e.g. Should we adopt React or Vue?"><button id="go" onclick="send()">Send</button></div>
 <script>
-const log = document.getElementById('log'), q = document.getElementById('q'), go = document.getElementById('go');
-q.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
-async function send() {
-  const text = q.value.trim(); if (!text) return;
-  q.value = ''; go.disabled = true;
-  log.innerHTML += '<div class=u><span>' + text.replace(/</g,'&lt;') + '</span></div><div class=a id=tmp>thinking… (live Zetaris queries take ~10s)</div>';
-  log.scrollTop = log.scrollHeight;
-  try {
-    const r = await fetch('http://localhost:8000/run', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ request_id: 'chat-' + Date.now(), user_query: text }) });
-    const d = await r.json();
+const log=document.getElementById('log'),q=document.getElementById('q'),go=document.getElementById('go');
+q.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+function md(t){
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/^### (.*)$/gm,'<h4>$1</h4>')
+    .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .split('\n').map(l=>/^\s*[-*] /.test(l)?'<li>'+l.replace(/^\s*[-*] /,'')+'</li>':l).join('\n')
+    .replace(/((<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>').replace(/\n/g,'<br>');
+}
+async function send(){
+  const text=q.value.trim();if(!text)return;
+  q.value='';go.disabled=true;
+  log.innerHTML+='<div class=u><span>'+text.replace(/</g,'&lt;')+'</span></div><div class=a id=tmp><span class=spin></span>Agent is investigating across Zetaris sources…</div>';
+  log.scrollTop=log.scrollHeight;
+  try{
+    const r=await fetch('http://localhost:8000/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:'chat-'+Date.now(),user_query:text})});
+    const d=await r.json();
     document.getElementById('tmp').remove();
-    const ev = (d.result.findings || []).map(f => '<div class=ev><b>' + f.rows_seen + ' rows</b> — ' + f.claim + '<br><span style=color:#94a3b8>sources: ' + f.sources.join(', ') + '</span></div>').join('');
-    log.innerHTML += '<div class=a>' + d.result.summary + ev +
-      '<div class=meta>agents: ' + d.agents_used.join(' → ') + ' | live: ' + d.zetaris_live + ' | confidence: ' + d.result.confidence + ' | revisions: ' + d.collaboration.revision_count + ' | ' + d.log_path + '</div></div>';
-  } catch (e) { document.getElementById('tmp').textContent = 'Error: ' + e + ' (is the server on :8000 running?)'; }
-  go.disabled = false; log.scrollTop = log.scrollHeight;
+    const ev=(d.result.findings||[]).map(f=>'<div class=ev><b>'+f.rows_seen+' rows</b> — <code>'+f.claim.replace(/</g,'&lt;')+'</code><br>sources: '+f.sources.join(', ')+'</div>').join('');
+    log.innerHTML+='<div class=a>'+md(d.result.summary)+
+      '<details><summary>Evidence queries ('+(d.result.findings||[]).length+' sources, click to expand)</summary>'+ev+'</details>'+
+      '<details><summary>Agent trace</summary><div class=meta>agents: '+d.agents_used.join(' → ')+' | live: '+d.zetaris_live+' | confidence: '+d.result.confidence+' | revisions: '+d.collaboration.revision_count+' | model: '+(d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a')+'<br>'+d.log_path+'</div></details></div>';
+  }catch(e){document.getElementById('tmp').innerHTML='Error: '+e+' (is the server on :8000 running?)';}
+  go.disabled=false;log.scrollTop=log.scrollHeight;
 }
 </script></body></html>
