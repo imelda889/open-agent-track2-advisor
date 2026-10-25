@@ -1,7 +1,10 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>Track 2 Agent Chat</title>
 <style>body{font-family:Segoe UI,Arial,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;background:#0f172a;color:#e2e8f0}
-#log{background:#1e293b;border-radius:10px;padding:16px;min-height:300px;max-height:60vh;overflow:auto}
+#log{background:#1e293b;border-radius:10px;padding:16px;min-height:300px;max-height:60vh;overflow:auto;scrollbar-width:thin;scrollbar-color:#38bdf8 #0b1220}
+#log::-webkit-scrollbar{width:8px}#log::-webkit-scrollbar-track{background:#0b1220;border-radius:8px}#log::-webkit-scrollbar-thumb{background:#334155;border-radius:8px}#log::-webkit-scrollbar-thumb:hover{background:#38bdf8}
 .u{text-align:right;margin:8px 0}.u span{background:#1d4ed8;border-radius:12px;padding:6px 12px;display:inline-block}
+.u .edit{font-size:11px;color:#93c5fd;cursor:pointer;margin-right:6px;opacity:0}.u:hover .edit{opacity:1}
+.u input{background:#0b1220;color:#e2e8f0;border:1px solid #38bdf8;border-radius:8px;padding:5px 10px;width:70%}
 .a{background:#020617;border-radius:12px;padding:10px 14px;margin:8px 0;font-size:15px;line-height:1.6}
 .a h4{margin:10px 0 4px}.a ul{margin:4px 0;padding-left:22px}.a li{margin:2px 0}
 details{margin-top:8px;font-size:13px;color:#94a3b8}summary{cursor:pointer;color:#38bdf8}
@@ -26,11 +29,14 @@ function md(t){
     .split('\n').map(l=>/^\s*[-*] /.test(l)?'<li>'+l.replace(/^\s*[-*] /,'')+'</li>':l).join('\n')
     .replace(/((<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>').replace(/\n/g,'<br>');
 }
-async function send(){
-  const text=q.value.trim();if(!text)return;
+async function send(textOverride){
+  const text=(textOverride!==undefined?textOverride:q.value).trim();if(!text)return;
   q.value='';go.disabled=true;
-  log.innerHTML+='<div class=u><span>'+text.replace(/</g,'&lt;')+'</span></div><div class=a id=tmp><span class=spin></span>Agent is investigating across Zetaris sources…</div>';
+  const t0=Date.now();
+  const qid='q'+t0;
+  log.innerHTML+='<div class=u id='+qid+'><span class=edit onclick="editMsg(\''+qid+'\')">edit</span><span class=txt>'+text.replace(/</g,'&lt;')+'</span></div><div class=a id=tmp><span class=spin></span><span id=timer>Agent is investigating across Zetaris sources… 0s</span></div>';
   log.scrollTop=log.scrollHeight;
+  const tick=setInterval(()=>{const el=document.getElementById('timer');if(el)el.textContent='Agent is investigating across Zetaris sources… '+Math.floor((Date.now()-t0)/1000)+'s';},500);
   try{
     const r=await fetch('http://localhost:8000/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:'chat-'+Date.now(),user_query:text})});
     const d=await r.json();
@@ -40,6 +46,22 @@ async function send(){
       '<details><summary>Evidence queries ('+(d.result.findings||[]).length+' sources, click to expand)</summary>'+ev+'</details>'+
       '<details><summary>Agent trace</summary><div class=meta>agents: '+d.agents_used.join(' → ')+' | live: '+d.zetaris_live+' | confidence: '+d.result.confidence+' | revisions: '+d.collaboration.revision_count+' | model: '+(d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a')+'<br>'+d.log_path+'</div></details></div>';
   }catch(e){document.getElementById('tmp').innerHTML='Error: '+e+' (is the server on :8000 running?)';}
-  go.disabled=false;log.scrollTop=log.scrollHeight;
+  clearInterval(tick);go.disabled=false;log.scrollTop=log.scrollHeight;
+}
+function editMsg(qid){
+  const box=document.getElementById(qid);if(!box||box.querySelector('input'))return;
+  const txt=box.querySelector('.txt').textContent;
+  box.querySelector('.txt').outerHTML='<input id='+qid+'-in value="'+txt.replace(/"/g,'&quot;')+'">';
+  const inp=document.getElementById(qid+'-in');inp.focus();inp.select();
+  inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      const nt=inp.value.trim()||txt;
+      let ans=box.nextElementSibling;
+      const nodes=[box];while(ans&&!ans.classList.contains('u')){nodes.push(ans);ans=ans.nextElementSibling;}
+      nodes.forEach(n=>n.remove());
+      send(nt);
+    }
+    if(e.key==='Escape'){inp.outerHTML='<span class=txt>'+txt.replace(/</g,'&lt;')+'</span>';}
+  });
 }
 </script></body></html>
