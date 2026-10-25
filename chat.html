@@ -7,7 +7,12 @@
 .hist:hover{background:#1e293b}.hist small{color:#64748b;display:block}
 #main{flex:1;max-width:1080px;margin:0 auto;padding:28px 28px;width:100%}
 #main h2{font-size:28px;margin:4px 0 14px}
-#log{background:#1e293b;border-radius:14px;padding:20px;min-height:46vh;max-height:66vh;overflow:auto;font-size:17px;scrollbar-width:thin;scrollbar-color:#38bdf8 #0b1220}
+#schema{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px;align-items:center}
+#schema .lbl{font-size:12px;color:#94a3b8}
+.tchip{font-size:12px;background:#0b1220;border:1px solid #334155;color:#7dd3fc;border-radius:8px;padding:4px 10px;cursor:pointer;font-family:Consolas,monospace}
+.tchip:hover{border-color:#38bdf8}
+.badge{display:inline-block;font-size:11px;background:#065f46;border-radius:20px;padding:2px 10px;margin-left:8px;vertical-align:middle}
+#log{background:#1e293b;border-radius:14px;padding:20px;min-height:40vh;max-height:62vh;overflow:auto;font-size:17px;scrollbar-width:thin;scrollbar-color:#38bdf8 #0b1220}
 #log::-webkit-scrollbar{width:8px}#log::-webkit-scrollbar-track{background:#0b1220;border-radius:8px}#log::-webkit-scrollbar-thumb{background:#334155;border-radius:8px}#log::-webkit-scrollbar-thumb:hover{background:#38bdf8}
 .u{text-align:right;margin:8px 0}.u span{background:#1d4ed8;border-radius:12px;padding:6px 12px;display:inline-block}
 .u .edit{font-size:11px;color:#93c5fd;cursor:pointer;margin-right:6px;opacity:0}.u:hover .edit{opacity:1}
@@ -15,24 +20,40 @@
 .a{background:#020617;border-radius:12px;padding:10px 14px;margin:8px 0;font-size:15px;line-height:1.6}
 .a h4{margin:10px 0 4px}.a ul{margin:4px 0;padding-left:22px}.a li{margin:2px 0}
 details{margin-top:8px;font-size:13px;color:#94a3b8}summary{cursor:pointer;color:#38bdf8}
-.ev{border-left:3px solid #38bdf8;padding-left:8px;margin:6px 0}
+.ev{border-left:3px solid #38bdf8;padding-left:8px;margin:6px 0;font-size:13px}
 .spin{display:inline-block;width:16px;height:16px;border:2px solid #334155;border-top-color:#38bdf8;border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-3px;margin-right:8px}
 @keyframes sp{to{transform:rotate(360deg)}}
 .meta{font-size:11px;color:#94a3b8;margin-top:8px}
+.tabs{display:flex;gap:6px;margin:10px 0 4px}
+.tabs button{font-size:13px;background:#0b1220;color:#94a3b8;border:1px solid #334155;border-radius:8px 8px 0 0;padding:6px 14px;cursor:pointer}
+.tabs button.on{background:#1e293b;color:#fff;border-color:#38bdf8}
+.tabpage{display:none}.tabpage.on{display:block}
+table.dt{border-collapse:collapse;width:100%;font-size:13px;margin:6px 0}
+table.dt th,table.dt td{border:1px solid #334155;padding:5px 8px;text-align:left;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.dt th{background:#0b1220;position:sticky;top:0}
+.bar-row{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:13px}
+.bar-lbl{width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#cbd5e1}
+.bar-outer{flex:1;background:#0b1220;border-radius:6px;height:16px}
+.bar-in{height:16px;border-radius:6px;background:linear-gradient(90deg,#2563eb,#38bdf8)}
+.bar-v{width:90px;text-align:right;color:#94a3b8;font-variant-numeric:tabular-nums}
+.sqlbox{background:#0b1220;border:1px solid #334155;border-radius:8px;padding:8px 10px;margin:6px 0;font-family:Consolas,monospace;font-size:12px;white-space:pre-wrap}
+.sqlbox button{font-size:11px;margin-top:6px}
 .acts{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
-.acts button{font-size:13px;padding:6px 14px;background:#0b1220;color:#cbd5e1;border:1px solid #334155;border-radius:999px;cursor:pointer;transition:border-color .15s,background .15s}
-.acts button:hover{border-color:#38bdf8;background:#1e293b}
+.acts button,.sqlbox button,.tabs button,.chips button{font-size:13px;padding:6px 14px;background:#0b1220;color:#cbd5e1;border:1px solid #334155;border-radius:999px;cursor:pointer}
+.acts button:hover,.sqlbox button:hover,.chips button:hover{border-color:#38bdf8}
 .acts button.done{background:#065f46;border-color:#065f46;color:#fff}
+.acts button.stop{border-color:#ef4444;color:#fca5a5}
 .chips{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 14px}
-.chips button{font-size:14px;background:linear-gradient(180deg,#1e293b,#0f172a);border:1px solid #334155;color:#bae6fd;border-radius:999px;padding:9px 16px;cursor:pointer;transition:border-color .15s,transform .15s}
+.chips button{font-size:14px;background:linear-gradient(180deg,#1e293b,#0f172a);border-color:#334155;color:#bae6fd;padding:9px 16px;transition:border-color .15s,transform .15s}
 .chips button:hover{border-color:#38bdf8;transform:translateY(-1px)}
-.chips button::before{content:'✨ ';}
+.chips button::before{content:'✨ '}
 #row{display:flex;gap:8px;margin-top:12px}input#q{flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#020617;color:#e2e8f0}
 button#go{padding:10px 18px;border-radius:8px;border:0;background:#2563eb;color:#fff;cursor:pointer}button#go:disabled{background:#475569}
 code{background:#1e293b;padding:1px 6px;border-radius:5px;font-size:13px}</style>
 </head><body><div id="app">
 <div id="side"><h3>HISTORY</h3><div id="hist"></div></div>
-<div id="main"><h2>Track 2 Agent Chat</h2>
+<div id="main"><h2>Track 2 Agent Chat <span class="badge">READ-ONLY · LIMIT 20</span></h2>
+<div id="schema"><span class="lbl">Tables:</span></div>
 <div class="chips" id="suggest"></div>
 <div id="log"></div>
 <div id="row"><input id="q" placeholder="Ask, e.g. Should we adopt React or Vue?"><button id="go" onclick="send()">Send</button></div>
@@ -40,31 +61,76 @@ code{background:#1e293b;padding:1px 6px;border-radius:5px;font-size:13px}</style
 <script>
 const log=document.getElementById('log'),q=document.getElementById('q'),go=document.getElementById('go');
 q.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+const TABLES=['advisor.all_repo_health_table','advisor.all_downloads_table','pokeapi.all_pokemon_stats_table','pokeapi.all_pokemon_types_table'];
+document.getElementById('schema').innerHTML='<span class="lbl">Tables:</span>'+TABLES.map(t=>'<span class="tchip" onclick="q.value+=(q.value?\' \':\'\')+\''+t+'\';q.focus()">'+t+'</span>').join('');
 const SUGGEST=['Should we adopt React or Vue for a new web project?','Which Pokemon has the highest base stats and why?','Compare npm download counts of react and vue with evidence'];
 document.getElementById('suggest').innerHTML=SUGGEST.map((s,i)=>'<button onclick="send('+i+',true)">'+s+'</button>').join('');
+let aborter=null;
+function md(t){
+  t=String(t).replace(/<think>[\s\S]*?<\/think>/g,'');
+  t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const lines=t.split('\n');let out='',inth=false;
+  const inline=s=>s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>');
+  for(const l of lines){
+    if(/^\s*\|.*\|\s*$/.test(l)){
+      if(!inth){out+='<table class=dt>';inth=true;}
+      const cells=l.split('|').filter(c=>c.trim()!=='');
+      if(/^[\s:-]+$/.test(cells.join(''))){continue;}
+      out+='<tr>'+cells.map(c=>'<td>'+inline(c.trim())+'</td>').join('')+'</tr>';
+      continue;
+    } else if(inth){out+='</table>';inth=false;}
+    if(/^### (.*)$/.test(l)){out+='<h4>'+inline(l.replace(/^### /,''))+'</h4>';continue;}
+    if(/^\s*[-*] /.test(l)){out+='<liitem>'+inline(l.replace(/^\s*[-*] /,''))+'</liitem>';continue;}
+    out+=inline(l)+'<br>';
+  }
+  if(inth)out+='</table>';
+  return out.replace(/((<liitem>.*<\/liitem>)+)/g,'<ul>$1</ul>').replace(/<\/?liitem>/g,m=>m.startsWith('</')?'</li>':'<li>');
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function renderTable(rows){
+  if(!rows||!rows.length)return '<div class=meta>no rows</div>';
+  let cols,body;
+  if(Array.isArray(rows[0])){cols=rows[0].map((_,i)=>'c'+i);body=rows.map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('');}
+  else{cols=Object.keys(rows[0]);body=rows.map(r=>'<tr>'+cols.map(c=>'<td>'+esc(r[c])+'</td>').join('')+'</tr>').join('');}
+  return '<div style="overflow:auto;max-height:260px"><table class=dt><tr>'+cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr>'+body+'</table></div>';
+}
+function renderBars(rows){
+  try{
+    let cols,data;
+    if(Array.isArray(rows[0])){cols=rows[0].map((_,i)=>i);data=rows;}
+    else{cols=Object.keys(rows[0]);data=rows.map(r=>cols.map(c=>r[c]));}
+    let ni=-1;
+    for(let i=0;i<cols.length;i++){if(data.every(r=>r[i]!==null&&r[i]!==''&&!isNaN(Number(r[i])))){ni=i;break;}}
+    if(ni<0)return '';
+    const li=cols.indexOf(cols.find((c,i)=>i!==ni&&(typeof data[0][i]==='string')))!==-1?cols.findIndex((c,i)=>i!==ni&&(typeof data[0][i]==='string')):0;
+    const max=Math.max(...data.map(r=>Number(r[ni])));
+    return data.map(r=>{const v=Number(r[ni]);const pct=max?Math.round(v/max*100):0;
+      return '<div class=bar-row><span class=bar-lbl>'+esc(r[li])+'</span><span class=bar-outer><span class=bar-in style="display:block;width:'+pct+'%"></span></span><span class=bar-v>'+v.toLocaleString()+'</span></div>';}).join('');
+  }catch(e){return '';}
+}
+function toCSV(findings){
+  const out=['source,live,rows'];
+  findings.forEach(f=>{(f.sample_rows||[]).forEach(r=>{out.push('"'+f.sources[0]+'",'+f.live+',"'+JSON.stringify(r).replace(/"/g,'""')+'"');});});
+  return out.join('\n');
+}
+function dlCSV(name,text){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/csv'}));a.download=name;a.click();
+}
 function followups(text,findings){
   const t=text.toLowerCase(),out=[];
-  const has=(w)=>t.includes(w);
+  const has=w=>t.includes(w);
   if(has('react')||has('vue')||has('framework')||has('library')){out.push('What does the evidence not cover?','Which has fewer open issues per star?','What about Vue 3 (vuejs/core)?');}
   else if(has('pokemon')||has('stat')){out.push('Which Pokemon has more types?','Show the full stat table');}
   else{out.push('What evidence is this based on?','How confident is this answer?');}
   if(findings&&findings.length)out.push('Show me the raw rows');
   return out.slice(0,3);
 }
-function md(t){
-  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/^### (.*)$/gm,'<h4>$1</h4>')
-    .replace(/\*\*(.+?)\*\*/g,'<b>$1</b>')
-    .replace(/`([^`]+)`/g,'<code>$1</code>')
-    .split('\n').map(l=>/^\s*[-*] /.test(l)?'<li>'+l.replace(/^\s*[-*] /,'')+'</li>':l).join('\n')
-    .replace(/((<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>').replace(/\n/g,'<br>');
-}
 function saveHist(entry){
   try{const h=JSON.parse(localStorage.getItem('track2-history')||'[]');h.unshift(entry);localStorage.setItem('track2-history',JSON.stringify(h.slice(0,20)));renderHist();}catch(e){}
 }
 function renderHist(){
   let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}
-  document.getElementById('hist').innerHTML=h.map((e,i)=>'<div class=hist onclick="recallHist('+i+')">'+e.q.replace(/</g,'&lt;')+'<small>'+new Date(e.t).toLocaleString()+'</small></div>').join('')||'<div class=hist>no chats yet</div>';
+  document.getElementById('hist').innerHTML=h.length?h.map((e,i)=>'<div class=hist onclick="recallHist('+i+')">'+e.q.replace(/</g,'&lt;')+'<small>'+new Date(e.t).toLocaleString()+'</small></div>').join(''):'<div class=hist>no chats yet</div>';
 }
 function recallHist(i){
   let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}
@@ -72,38 +138,53 @@ function recallHist(i){
   log.innerHTML='<div class=u><span>'+e.q.replace(/</g,'&lt;')+'</span></div><div class=a>'+e.html+'<div class=meta>restored from history · '+new Date(e.t).toLocaleString()+'</div></div>';
 }
 function copyAns(id){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText).then(()=>{const b=document.getElementById(id+'-cp');if(b){b.textContent='copied ✓';setTimeout(()=>b.textContent='copy',1500);}});}
+function copySQL(id){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText).then(()=>{const b=document.getElementById(id+'-b');if(b){b.textContent='copied ✓';setTimeout(()=>b.textContent='copy SQL',1500);}});}
 async function fb(traceQ,helpful,btn){
   try{await fetch('http://localhost:8000/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_query:traceQ,helpful:helpful})});btn.textContent=helpful?'👍 recorded → memory':'👎 recorded → memory';btn.classList.add('done');}catch(e){btn.textContent='failed';}
 }
+function switchTab(aid,n){document.querySelectorAll('#'+aid+'-t0,#'+aid+'-t1,#'+aid+'-t2').forEach((p,i)=>p.classList.toggle('on',i===n));document.querySelectorAll('#'+aid+'-b0,#'+aid+'-b1,#'+aid+'-b2').forEach((b,i)=>b.classList.toggle('on',i===n));}
 async function send(si,useSuggest){
+  if(go.dataset.busy==='1'){if(aborter)aborter.abort();return;}
   const text=(si!==undefined?(useSuggest?SUGGEST[si]:si):q.value).trim();if(!text)return;
-  q.value='';go.disabled=true;
+  q.value='';go.dataset.busy='1';go.textContent='Stop';go.classList.add('stop');
+  aborter=new AbortController();
   const t0=Date.now(),qid='q'+t0;
   log.innerHTML+='<div class=u id='+qid+'><span class=edit onclick="editMsg(\''+qid+'\')">edit</span><span class=txt>'+text.replace(/</g,'&lt;')+'</span></div><div class=a id=tmp><span class=spin></span><span id=timer>Agent is investigating across Zetaris sources… 0s</span></div>';
   log.scrollTop=log.scrollHeight;
   const tick=setInterval(()=>{const el=document.getElementById('timer');if(el)el.textContent='Agent is investigating across Zetaris sources… '+Math.floor((Date.now()-t0)/1000)+'s';},500);
   try{
-    const r=await fetch('http://localhost:8000/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:'chat-'+t0,user_query:text})});
+    const r=await fetch('http://localhost:8000/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:'chat-'+t0,user_query:text}),signal:aborter.signal});
     const d=await r.json();
     clearInterval(tick);
-    const secs=((d.elapsed_ms||(Date.now()-t0))/1000).toFixed(1);
     document.getElementById('tmp').remove();
-    const ev=(d.result.findings||[]).map(f=>'<div class=ev><b>'+f.rows_seen+' rows</b> — <code>'+f.claim.replace(/</g,'&lt;')+'</code><br>sources: '+f.sources.join(', ')+'</div>').join('');
+    const secs=((d.elapsed_ms||(Date.now()-t0))/1000).toFixed(1);
+    const ev=(d.result.findings||[]).map((f,i)=>'<div class=ev><b>'+f.rows_seen+' rows · '+f.query_ms+'ms</b> — <code>'+f.claim.replace(/</g,'&lt;')+'</code><br>sources: '+f.sources.join(', ')+'</div>').join('');
+    const sqls=(d.result.findings||[]).map((f,i)=>'<div class=sqlbox id='+qid+'-sql'+i+'>'+esc(f.sql)+'<br><button id='+qid+'-sql'+i+'-b onclick="copySQL(\''+qid+'-sql'+i+'\')">copy SQL</button></div>').join('');
+    const tables=(d.result.findings||[]).map(f=>'<h4>'+esc(f.sources[0])+(f.live?' · live':' · sample')+'</h4>'+renderTable(f.sample_rows)).join('');
+    let bars='';try{d.result.findings.forEach(f=>{bars+=renderBars(f.sample_rows||[]);});}catch(e){}
     const aid='a'+t0;
     const fups=followups(text,d.result.findings).map(f=>'<button onclick="send(\''+f.replace(/'/g,"\\'")+'\')">'+f.replace(/</g,'&lt;')+'</button>').join('');
-    log.innerHTML+='<div class=a id='+aid+'>'+md(d.result.summary)+
+    log.innerHTML+='<div class=a id='+aid+'>'+
+      '<div class=tabs><button id='+aid+'-b0 class=on onclick="switchTab(\''+aid+'\',0)">📝 Answer</button><button id='+aid+'-b1 onclick="switchTab(\''+aid+'\',1)">📊 Data</button><button id='+aid+'-b2 onclick="switchTab(\''+aid+'\',2)">🧾 SQL</button></div>'+
+      '<div class=tabpage id='+aid+'-t0 style="display:block">'+md(d.result.summary)+'</div>'+
+      '<div class=tabpage id='+aid+'-t1>'+(bars||'')+tables+'<button onclick="dlCSV(\'evidence-'+t0+'.csv\',\''+toCSV(d.result.findings).replace(/'/g,"\\'").replace(/\n/g,'\\n')+'\')">📥 export CSV</button></div>'+
+      '<div class=tabpage id='+aid+'-t2>'+(sqls||'<div class=meta>no queries</div>')+'</div>'+
       '<div class=acts><button id='+aid+'-cp onclick="copyAns(\''+aid+'-body\')">copy</button>'+
       '<button onclick="send(\''+text.replace(/'/g,"\\'")+'\')">↻ regenerate</button>'+
       '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',true,this)">👍</button>'+
       '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',false,this)">👎</button></div>'+
       '<div id='+aid+'-body style=display:none>'+md(d.result.summary).replace(/"/g,'&quot;')+'</div>'+
-      '<details><summary>Thought for '+secs+'s — '+(d.agents_used||[]).join(' → ')+'</summary><div class=meta>planner → retriever → summarizer → critic → report · revisions: '+d.collaboration.revision_count+' · confidence: '+d.result.confidence+' · model: '+(d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a')+'</div></details>'+
+      '<details><summary>Thought for '+secs+'s — '+(d.agents_used||[]).join(' → ')+'</summary><div class=meta>planner → retriever → summarizer → critic → report-writer · revisions: '+d.collaboration.revision_count+' · confidence: '+d.result.confidence+' · model: '+(d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a')+'</div></details>'+
       '<details><summary>Evidence queries ('+(d.result.findings||[]).length+' sources, click to expand)</summary>'+ev+'</details>'+
       '<details><summary>Agent trace</summary><div class=meta>'+d.log_path+'</div></details>'+
       '<div class=chips>'+fups+'</div></div>';
-    saveHist({q:text,t:t0,html:document.querySelector('#'+aid).innerHTML});
-  }catch(e){clearInterval(tick);document.getElementById('tmp').innerHTML='Error: '+e+' (is the server on :8000 running?)';}
-  go.disabled=false;log.scrollTop=log.scrollHeight;
+    saveHist({q:text,t:t0,html:document.getElementById(aid).innerHTML});
+  }catch(e){
+    clearInterval(tick);
+    const tmp=document.getElementById('tmp');
+    if(tmp)tmp.innerHTML=e.name==='AbortError'?'Stopped by user.':('Error: '+e+' (is the server on :8000 running?)');
+  }
+  go.dataset.busy='';go.textContent='Send';log.scrollTop=log.scrollHeight;
 }
 function editMsg(qid){
   const box=document.getElementById(qid);if(!box||box.querySelector('input'))return;

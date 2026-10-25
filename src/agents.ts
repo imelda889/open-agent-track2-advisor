@@ -10,6 +10,10 @@ export interface Finding {
   claim: string;
   sources: string[];
   rows_seen: number;
+  sql: string;
+  live: boolean;
+  query_ms: number;
+  sample_rows: unknown[];
 }
 
 export interface Draft {
@@ -71,11 +75,15 @@ function tableOf(sql: string): string {
   return m ? m[1] : "unknown";
 }
 
-function summarize(question: string, evidence: { sql: string; rows: unknown[]; live: boolean }[]): Draft {
+function summarize(question: string, evidence: { sql: string; rows: unknown[]; live: boolean; ms: number }[]): Draft {
   const findings: Finding[] = evidence.map((e) => ({
-    claim: `Query \`${e.sql}\` returned ${e.rows.length} rows (${e.live ? "live Zetaris" : "sample fallback"}).`,
+    claim: `Query \`${e.sql}\` returned ${e.rows.length} rows in ${e.ms}ms (${e.live ? "live Zetaris" : "sample fallback"}).`,
     sources: [tableOf(e.sql), e.live ? "zetaris:live" : "zetaris:sample"],
     rows_seen: e.rows.length,
+    sql: e.sql,
+    live: e.live,
+    query_ms: e.ms,
+    sample_rows: (e.rows as unknown[]).slice(0, 5),
   }));
   const total = evidence.reduce((n, e) => n + e.rows.length, 0);
   const liveCount = evidence.filter((e) => e.live).length;
@@ -123,13 +131,15 @@ export async function runTrack2(userQuery: string, requestId: string): Promise<R
     target_agent: "Retriever", confidence: 0.8, retry_count: 0, status: "success",
   });
 
-  const evidence: { sql: string; rows: unknown[]; live: boolean }[] = [];
+  const evidence: { sql: string; rows: unknown[]; live: boolean; ms: number }[] = [];
   let liveCount = 0;
   for (const sql of subSql) {
     try {
+      const t0 = Date.now();
       const { rows, live } = await runSql(sql, 20);
+      const ms = Date.now() - t0;
       if (live) liveCount++;
-      evidence.push({ sql, rows, live });
+      evidence.push({ sql, rows, live, ms });
       // Mine evidence into H-MEM so second runs remember (Meterless role).
       await hmem.mine("tool_result", `${sql} -> ${rows.length} rows`);
       trace(traceId, {
@@ -145,7 +155,7 @@ export async function runTrack2(userQuery: string, requestId: string): Promise<R
         output_summary: `Error: ${(err as Error).message.slice(0, 200)}`,
         target_agent: "EvidenceSummarizer", confidence: 0.2, retry_count: 1, status: "error",
       });
-      evidence.push({ sql, rows: [], live: false });
+      evidence.push({ sql, rows: [], live: false, ms: 0 });
     }
   }
 
@@ -172,8 +182,9 @@ export async function runTrack2(userQuery: string, requestId: string): Promise<R
   if (critique.requires_revision && revisionCount < 1) {
     revisionCount++;
     // Revision: re-query with tighter limit and rebuild draft (no hardcoded answers).
+    const rt0 = Date.now();
     const extra = await runSql(subSql[0], 50).catch(() => ({ rows: [] as unknown[], live: false }));
-    evidence[0] = { sql: subSql[0], rows: extra.rows, live: extra.live };
+    evidence[0] = { sql: subSql[0], rows: extra.rows, live: extra.live, ms: Date.now() - rt0 };
     draft = summarize(userQuery, evidence);
     draft.summary += ` Revised after critic feedback (revision ${revisionCount}).`;
     critique = critiqueDraft(userQuery, draft);
