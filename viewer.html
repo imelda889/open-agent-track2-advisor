@@ -1,0 +1,66 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'><title>Track 2 - Tech Stack Advisor (Nightshift live)</title>
+<style>body{font-family:Segoe UI,Arial,sans-serif;max-width:900px;margin:24px auto;padding:0 16px;background:#0f172a;color:#e2e8f0}h1{font-size:20px}.card{background:#1e293b;border-radius:10px;padding:16px;margin:12px 0}.pill{display:inline-block;background:#065f46;border-radius:20px;padding:2px 12px;font-size:12px;margin-right:6px}.ev{border-left:3px solid #38bdf8;padding-left:10px;margin:8px 0}</style>
+</head><body><h1>Track 2: Tech Stack Advisor - Nightshift live (React vs Vue)</h1>
+<div class='card'><div id='meta'></div><h3>Recommendation (model-written)</h3><div id='sum' style='white-space:pre-wrap'></div><h3>Evidence (live Zetaris)</h3><div id='ev'></div></div>
+<script>
+const data = {
+    "request_id":  "example-001",
+    "trace_id":  "trace-example-001-1792934732714",
+    "status":  "success",
+    "agents_used":  [
+                        "ResearchPlanner",
+                        "Retriever",
+                        "EvidenceSummarizer",
+                        "InsightCritic",
+                        "ReportWriter"
+                    ],
+    "result":  {
+                   "summary":  "Investigated \"We are starting a new web project. Should we adopt React or Vue? Compare community health, maintenance activity and adoption with evidence.\" across 2 Zetaris sources (2 live). Connected findings below; each claim cites its source query.\n\nFinal recommendation (nightshift, model nvidia/nemotron-3.5-lightning-30b-a3b):\n**Comparison based on provided evidence:**\n\n- **Community health** (`advisor.all_repo_health_table`):  \n  React has more stars (251,788 vs 212,629), more forks (51,566 vs 33,616), and more open issues (1,491 vs 642) than Vue. Higher stars/forks suggest a larger contributing base, while the issue counts differ but do not directly indicate health without resolution context.\n\n- **Maintenance activity** (`advisor.all_repo_health_table`):  \n  React\u0027s last update timestamp is 2026-10-25T11:04:57Z; Vue\u0027s is 2024-10-10T07:24:15Z. By these timestamps, React shows more recent commit activity.\n\n- **Adoption** (`advisor.all_downloads_table`):  \n  React npm downloads: 123,680,288 vs Vue\u0027s 11,038,721. React\u0027s download volume is roughly 11x higher, indicating significantly broader current usage.\n\n**What the evidence does not cover:**  \n- Issue resolution velocity or closedÃ¢Â€Â‘issue ratio  \n- Contributor count or commit frequency beyond the single lastÃ¢Â€Â‘update timestamp  \n- Release cycles, versioning strategy, or longÃ¢Â€Â‘term support policies  \n- Ecosystem size (number of complementary libraries, UI component collections, etc.)  \n- TypeÃ¢Â€Â‘system maturity beyond the noted language difference (React: JavaScript, Vue: TypeScript)  \n- Learning curve, performance characteristics, or domainÃ¢Â€Â‘specific fit for your project  \n\nIf you need deeper signals (e.g., contributor activity, release cadence, or ecosystem metrics), those lie outside the current tables and would require additional data sources.",
+                   "findings":  [
+                                    {
+                                        "claim":  "Query `SELECT * FROM advisor.all_repo_health_table` returned 2 rows (live Zetaris).",
+                                        "sources":  [
+                                                        "advisor.all_repo_health_table",
+                                                        "zetaris:live"
+                                                    ],
+                                        "rows_seen":  2
+                                    },
+                                    {
+                                        "claim":  "Query `SELECT * FROM advisor.all_downloads_table` returned 2 rows (live Zetaris).",
+                                        "sources":  [
+                                                        "advisor.all_downloads_table",
+                                                        "zetaris:live"
+                                                    ],
+                                        "rows_seen":  2
+                                    }
+                                ],
+                   "confidence":  0.64
+               },
+    "collaboration":  {
+                          "feedback_loop_completed":  true,
+                          "revision_count":  0,
+                          "evaluator_findings":  [
+
+                                                 ]
+                      },
+    "ai_provider":  {
+                        "mode":  "nightshift",
+                        "model":  "nvidia/nemotron-3.5-lightning-30b-a3b"
+                    },
+    "zetaris_live":  true,
+    "memory_engine":  "Meterless H-MEM (vendor/hmem)",
+    "log_path":  "logs/trace-example-001-1792934732714.jsonl",
+    "elapsed_ms":  73986
+}
+;
+document.getElementById('meta').innerHTML =
+ '<span class=pill>status: '+data.status+'</span>'+
+ '<span class=pill>zetaris_live: '+data.zetaris_live+'</span>'+
+ '<span class=pill>confidence: '+data.result.confidence+'</span>'+
+ '<span class=pill>ai: '+data.ai_provider.mode+' / '+data.ai_provider.model+'</span>'+
+ '<span class=pill>'+data.elapsed_ms+'ms</span>';
+document.getElementById('sum').textContent = data.result.summary;
+document.getElementById('ev').innerHTML = data.result.findings.map(f =>
+ '<div class=ev><b>'+f.rows_seen+' rows</b> - '+f.claim+'<br><small>sources: '+f.sources.join(', ')+'</small></div>').join('');
+</script>
+</body></html>

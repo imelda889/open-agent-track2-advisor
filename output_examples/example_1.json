@@ -1,0 +1,49 @@
+{
+    "request_id":  "example-001",
+    "trace_id":  "trace-example-001-1792934732714",
+    "status":  "success",
+    "agents_used":  [
+                        "ResearchPlanner",
+                        "Retriever",
+                        "EvidenceSummarizer",
+                        "InsightCritic",
+                        "ReportWriter"
+                    ],
+    "result":  {
+                   "summary":  "Investigated \"We are starting a new web project. Should we adopt React or Vue? Compare community health, maintenance activity and adoption with evidence.\" across 2 Zetaris sources (2 live). Connected findings below; each claim cites its source query.\n\nFinal recommendation (nightshift, model nvidia/nemotron-3.5-lightning-30b-a3b):\n**Comparison based on provided evidence:**\n\n- **Community health** (`advisor.all_repo_health_table`):  \n  React has more stars (251,788 vs 212,629), more forks (51,566 vs 33,616), and more open issues (1,491 vs 642) than Vue. Higher stars/forks suggest a larger contributing base, while the issue counts differ but do not directly indicate health without resolution context.\n\n- **Maintenance activity** (`advisor.all_repo_health_table`):  \n  React\u0027s last update timestamp is 2026-10-25T11:04:57Z; Vue\u0027s is 2024-10-10T07:24:15Z. By these timestamps, React shows more recent commit activity.\n\n- **Adoption** (`advisor.all_downloads_table`):  \n  React npm downloads: 123,680,288 vs Vue\u0027s 11,038,721. React\u0027s download volume is roughly 11x higher, indicating significantly broader current usage.\n\n**What the evidence does not cover:**  \n- Issue resolution velocity or closedâissue ratio  \n- Contributor count or commit frequency beyond the single lastâupdate timestamp  \n- Release cycles, versioning strategy, or longâterm support policies  \n- Ecosystem size (number of complementary libraries, UI component collections, etc.)  \n- Typeâsystem maturity beyond the noted language difference (React: JavaScript, Vue: TypeScript)  \n- Learning curve, performance characteristics, or domainâspecific fit for your project  \n\nIf you need deeper signals (e.g., contributor activity, release cadence, or ecosystem metrics), those lie outside the current tables and would require additional data sources.",
+                   "findings":  [
+                                    {
+                                        "claim":  "Query `SELECT * FROM advisor.all_repo_health_table` returned 2 rows (live Zetaris).",
+                                        "sources":  [
+                                                        "advisor.all_repo_health_table",
+                                                        "zetaris:live"
+                                                    ],
+                                        "rows_seen":  2
+                                    },
+                                    {
+                                        "claim":  "Query `SELECT * FROM advisor.all_downloads_table` returned 2 rows (live Zetaris).",
+                                        "sources":  [
+                                                        "advisor.all_downloads_table",
+                                                        "zetaris:live"
+                                                    ],
+                                        "rows_seen":  2
+                                    }
+                                ],
+                   "confidence":  0.64
+               },
+    "collaboration":  {
+                          "feedback_loop_completed":  true,
+                          "revision_count":  0,
+                          "evaluator_findings":  [
+
+                                                 ]
+                      },
+    "ai_provider":  {
+                        "mode":  "nightshift",
+                        "model":  "nvidia/nemotron-3.5-lightning-30b-a3b"
+                    },
+    "zetaris_live":  true,
+    "memory_engine":  "Meterless H-MEM (vendor/hmem)",
+    "log_path":  "logs/trace-example-001-1792934732714.jsonl",
+    "elapsed_ms":  73986
+}

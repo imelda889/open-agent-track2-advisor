@@ -1,0 +1,45 @@
+{
+    "request_id":  "example-003",
+    "trace_id":  "trace-example-003-1792730324990",
+    "status":  "success",
+    "agents_used":  [
+                        "ResearchPlanner",
+                        "Retriever",
+                        "EvidenceSummarizer",
+                        "InsightCritic",
+                        "ReportWriter"
+                    ],
+    "result":  {
+                   "summary":  "Investigated \"Explain the drop in repeat customers using trips and customer tables, with evidence.\" across 2 Zetaris sources (0 live). Connected findings below; each claim cites its source query.",
+                   "findings":  [
+                                    {
+                                        "claim":  "Query `SELECT * FROM NY_TAXI.taxi_zones LIMIT 5` returned 2 rows (sample fallback).",
+                                        "sources":  [
+                                                        "NY_TAXI.taxi_zones",
+                                                        "zetaris:sample"
+                                                    ],
+                                        "rows_seen":  2
+                                    },
+                                    {
+                                        "claim":  "Query `SELECT COUNT(*) AS n FROM NY_TAXI.trips` returned 2 rows (sample fallback).",
+                                        "sources":  [
+                                                        "NY_TAXI.trips",
+                                                        "zetaris:sample"
+                                                    ],
+                                        "rows_seen":  2
+                                    }
+                                ],
+                   "confidence":  0.44
+               },
+    "collaboration":  {
+                          "feedback_loop_completed":  true,
+                          "revision_count":  0,
+                          "evaluator_findings":  [
+
+                                                 ]
+                      },
+    "zetaris_live":  false,
+    "memory_engine":  "Meterless H-MEM (vendor/hmem)",
+    "log_path":  "logs/trace-example-003-1792730324990.jsonl",
+    "elapsed_ms":  11
+}

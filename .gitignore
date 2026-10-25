@@ -1,0 +1,16 @@
+# Secrets - never commit
+.env
+.env.local
+*.key
+proxy-token
+
+# Deps & generated (rebuilt via npm install / npm run setup)
+node_modules/
+vendor/
+.notebook/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
