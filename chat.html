@@ -1,6 +1,12 @@
 <!DOCTYPE html><html><head><meta charset="utf-8"><title>Track 2 Agent Chat</title>
-<style>body{font-family:Segoe UI,Arial,sans-serif;max-width:800px;margin:24px auto;padding:0 16px;background:#0f172a;color:#e2e8f0}
-#log{background:#1e293b;border-radius:10px;padding:16px;min-height:300px;max-height:60vh;overflow:auto;scrollbar-width:thin;scrollbar-color:#38bdf8 #0b1220}
+<style>body{font-family:Segoe UI,Arial,sans-serif;margin:0;background:#0f172a;color:#e2e8f0}
+#app{display:flex;min-height:100vh}
+#side{width:230px;background:#0b1220;padding:14px 10px;flex-shrink:0}
+#side h3{font-size:13px;color:#94a3b8;margin:4px 6px 10px;letter-spacing:1px}
+.hist{font-size:13px;padding:8px 10px;border-radius:8px;cursor:pointer;color:#cbd5e1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist:hover{background:#1e293b}.hist small{color:#64748b;display:block}
+#main{flex:1;max-width:800px;margin:0 auto;padding:24px 16px}
+#log{background:#1e293b;border-radius:10px;padding:16px;min-height:300px;max-height:62vh;overflow:auto;scrollbar-width:thin;scrollbar-color:#38bdf8 #0b1220}
 #log::-webkit-scrollbar{width:8px}#log::-webkit-scrollbar-track{background:#0b1220;border-radius:8px}#log::-webkit-scrollbar-thumb{background:#334155;border-radius:8px}#log::-webkit-scrollbar-thumb:hover{background:#38bdf8}
 .u{text-align:right;margin:8px 0}.u span{background:#1d4ed8;border-radius:12px;padding:6px 12px;display:inline-block}
 .u .edit{font-size:11px;color:#93c5fd;cursor:pointer;margin-right:6px;opacity:0}.u:hover .edit{opacity:1}
@@ -12,15 +18,35 @@ details{margin-top:8px;font-size:13px;color:#94a3b8}summary{cursor:pointer;color
 .spin{display:inline-block;width:16px;height:16px;border:2px solid #334155;border-top-color:#38bdf8;border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-3px;margin-right:8px}
 @keyframes sp{to{transform:rotate(360deg)}}
 .meta{font-size:11px;color:#94a3b8;margin-top:8px}
-#row{display:flex;gap:8px;margin-top:12px}input{flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#020617;color:#e2e8f0}
-button{padding:10px 18px;border-radius:8px;border:0;background:#2563eb;color:#fff;cursor:pointer}button:disabled{background:#475569}
+.acts{margin-top:8px;display:flex;gap:6px;flex-wrap:wrap}
+.acts button{font-size:12px;padding:4px 10px;background:#1e293b}
+.acts button.done{background:#065f46}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.chips button{font-size:12px;background:#0b1220;border:1px solid #38bdf8;color:#7dd3fc}
+#row{display:flex;gap:8px;margin-top:12px}input#q{flex:1;padding:10px;border-radius:8px;border:1px solid #334155;background:#020617;color:#e2e8f0}
+button#go{padding:10px 18px;border-radius:8px;border:0;background:#2563eb;color:#fff;cursor:pointer}button#go:disabled{background:#475569}
 code{background:#1e293b;padding:1px 6px;border-radius:5px;font-size:13px}</style>
-</head><body><h2>Track 2 Agent Chat</h2>
+</head><body><div id="app">
+<div id="side"><h3>HISTORY</h3><div id="hist"></div></div>
+<div id="main"><h2>Track 2 Agent Chat</h2>
+<div class="chips" id="suggest"></div>
 <div id="log"></div>
 <div id="row"><input id="q" placeholder="Ask, e.g. Should we adopt React or Vue?"><button id="go" onclick="send()">Send</button></div>
+</div></div>
 <script>
 const log=document.getElementById('log'),q=document.getElementById('q'),go=document.getElementById('go');
 q.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+const SUGGEST=['Should we adopt React or Vue for a new web project?','Which Pokemon has the highest base stats and why?','Compare npm download counts of react and vue with evidence'];
+document.getElementById('suggest').innerHTML=SUGGEST.map((s,i)=>'<button onclick="send('+i+',true)">'+s+'</button>').join('');
+function followups(text,findings){
+  const t=text.toLowerCase(),out=[];
+  const has=(w)=>t.includes(w);
+  if(has('react')||has('vue')||has('framework')||has('library')){out.push('What does the evidence not cover?','Which has fewer open issues per star?','What about Vue 3 (vuejs/core)?');}
+  else if(has('pokemon')||has('stat')){out.push('Which Pokemon has more types?','Show the full stat table');}
+  else{out.push('What evidence is this based on?','How confident is this answer?');}
+  if(findings&&findings.length)out.push('Show me the raw rows');
+  return out.slice(0,3);
+}
 function md(t){
   return t.replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/^### (.*)$/gm,'<h4>$1</h4>')
@@ -29,24 +55,51 @@ function md(t){
     .split('\n').map(l=>/^\s*[-*] /.test(l)?'<li>'+l.replace(/^\s*[-*] /,'')+'</li>':l).join('\n')
     .replace(/((<li>.*<\/li>\n?)+)/g,'<ul>$1</ul>').replace(/\n/g,'<br>');
 }
-async function send(textOverride){
-  const text=(textOverride!==undefined?textOverride:q.value).trim();if(!text)return;
+function saveHist(entry){
+  try{const h=JSON.parse(localStorage.getItem('track2-history')||'[]');h.unshift(entry);localStorage.setItem('track2-history',JSON.stringify(h.slice(0,20)));renderHist();}catch(e){}
+}
+function renderHist(){
+  let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}
+  document.getElementById('hist').innerHTML=h.map((e,i)=>'<div class=hist onclick="recallHist('+i+')">'+e.q.replace(/</g,'&lt;')+'<small>'+new Date(e.t).toLocaleString()+'</small></div>').join('')||'<div class=hist>no chats yet</div>';
+}
+function recallHist(i){
+  let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}
+  const e=h[i];if(!e)return;
+  log.innerHTML='<div class=u><span>'+e.q.replace(/</g,'&lt;')+'</span></div><div class=a>'+e.html+'<div class=meta>restored from history · '+new Date(e.t).toLocaleString()+'</div></div>';
+}
+function copyAns(id){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText).then(()=>{const b=document.getElementById(id+'-cp');if(b){b.textContent='copied ✓';setTimeout(()=>b.textContent='copy',1500);}});}
+async function fb(traceQ,helpful,btn){
+  try{await fetch('http://localhost:8000/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_query:traceQ,helpful:helpful})});btn.textContent=helpful?'👍 recorded → memory':'👎 recorded → memory';btn.classList.add('done');}catch(e){btn.textContent='failed';}
+}
+async function send(si,useSuggest){
+  const text=(si!==undefined?(useSuggest?SUGGEST[si]:si):q.value).trim();if(!text)return;
   q.value='';go.disabled=true;
-  const t0=Date.now();
-  const qid='q'+t0;
+  const t0=Date.now(),qid='q'+t0;
   log.innerHTML+='<div class=u id='+qid+'><span class=edit onclick="editMsg(\''+qid+'\')">edit</span><span class=txt>'+text.replace(/</g,'&lt;')+'</span></div><div class=a id=tmp><span class=spin></span><span id=timer>Agent is investigating across Zetaris sources… 0s</span></div>';
   log.scrollTop=log.scrollHeight;
   const tick=setInterval(()=>{const el=document.getElementById('timer');if(el)el.textContent='Agent is investigating across Zetaris sources… '+Math.floor((Date.now()-t0)/1000)+'s';},500);
   try{
-    const r=await fetch('http://localhost:8000/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:'chat-'+Date.now(),user_query:text})});
+    const r=await fetch('http://localhost:8000/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:'chat-'+t0,user_query:text})});
     const d=await r.json();
+    clearInterval(tick);
+    const secs=((d.elapsed_ms||(Date.now()-t0))/1000).toFixed(1);
     document.getElementById('tmp').remove();
     const ev=(d.result.findings||[]).map(f=>'<div class=ev><b>'+f.rows_seen+' rows</b> — <code>'+f.claim.replace(/</g,'&lt;')+'</code><br>sources: '+f.sources.join(', ')+'</div>').join('');
-    log.innerHTML+='<div class=a>'+md(d.result.summary)+
+    const aid='a'+t0;
+    const fups=followups(text,d.result.findings).map(f=>'<button onclick="send(\''+f.replace(/'/g,"\\'")+'\')">'+f.replace(/</g,'&lt;')+'</button>').join('');
+    log.innerHTML+='<div class=a id='+aid+'>'+md(d.result.summary)+
+      '<div class=acts><button id='+aid+'-cp onclick="copyAns(\''+aid+'-body\')">copy</button>'+
+      '<button onclick="send(\''+text.replace(/'/g,"\\'")+'\')">↻ regenerate</button>'+
+      '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',true,this)">👍</button>'+
+      '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',false,this)">👎</button></div>'+
+      '<div id='+aid+'-body style=display:none>'+md(d.result.summary).replace(/"/g,'&quot;')+'</div>'+
+      '<details><summary>Thought for '+secs+'s — '+(d.agents_used||[]).join(' → ')+'</summary><div class=meta>planner → retriever → summarizer → critic → report · revisions: '+d.collaboration.revision_count+' · confidence: '+d.result.confidence+' · model: '+(d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a')+'</div></details>'+
       '<details><summary>Evidence queries ('+(d.result.findings||[]).length+' sources, click to expand)</summary>'+ev+'</details>'+
-      '<details><summary>Agent trace</summary><div class=meta>agents: '+d.agents_used.join(' → ')+' | live: '+d.zetaris_live+' | confidence: '+d.result.confidence+' | revisions: '+d.collaboration.revision_count+' | model: '+(d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a')+'<br>'+d.log_path+'</div></details></div>';
-  }catch(e){document.getElementById('tmp').innerHTML='Error: '+e+' (is the server on :8000 running?)';}
-  clearInterval(tick);go.disabled=false;log.scrollTop=log.scrollHeight;
+      '<details><summary>Agent trace</summary><div class=meta>'+d.log_path+'</div></details>'+
+      '<div class=chips>'+fups+'</div></div>';
+    saveHist({q:text,t:t0,html:document.querySelector('#'+aid).innerHTML});
+  }catch(e){clearInterval(tick);document.getElementById('tmp').innerHTML='Error: '+e+' (is the server on :8000 running?)';}
+  go.disabled=false;log.scrollTop=log.scrollHeight;
 }
 function editMsg(qid){
   const box=document.getElementById(qid);if(!box||box.querySelector('input'))return;
@@ -64,4 +117,5 @@ function editMsg(qid){
     if(e.key==='Escape'){inp.outerHTML='<span class=txt>'+txt.replace(/</g,'&lt;')+'</span>';}
   });
 }
+renderHist();
 </script></body></html>

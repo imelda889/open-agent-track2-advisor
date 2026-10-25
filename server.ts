@@ -2,6 +2,7 @@
 import http from "node:http";
 import { randomUUID } from "node:crypto";
 import { runTrack2 } from "./src/agents.ts";
+import { getMemory } from "./src/meterless.ts";
 
 const PORT = Number(process.env.PORT ?? 8000);
 
@@ -22,6 +23,27 @@ const server = http.createServer((req, res) => {
   }
   if (req.method === "GET" && req.url === "/health") {
     send(res, 200, { ok: true });
+    return;
+  }
+  if (req.method === "POST" && (req.url === "/feedback" || req.url?.startsWith("/feedback?"))) {
+    let body = "";
+    req.on("data", (c) => { body += c; });
+    req.on("end", async () => {
+      try {
+        const parsed = body ? JSON.parse(body) : {};
+        const helpful = parsed.helpful === true;
+        const q = String(parsed.user_query ?? "").slice(0, 500);
+        const { hmem } = await getMemory();
+        const text = `User rated an answer ${helpful ? "helpful" : "not helpful"} for question: ${q}`;
+        const mined = await hmem.mine("user_feedback", text);
+        if (mined.length === 0) {
+          hmem.add({ content: text, type: "feedback", source: "chat:feedback" });
+        }
+        send(res, 200, { ok: true, recorded: helpful ? "helpful" : "not_helpful" });
+      } catch (err) {
+        send(res, 500, { type: "error", code: "feedback_failed", message: (err as Error).message.slice(0, 300) });
+      }
+    });
     return;
   }
   if (req.method === "POST" && (req.url === "/run" || req.url?.startsWith("/run?"))) {
