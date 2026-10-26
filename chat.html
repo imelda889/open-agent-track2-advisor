@@ -369,6 +369,7 @@ async function send(preset){
     const findings=d.result.findings||[];
     RCACHE[aid]={d:d,findings:findings};
     const liveN=findings.filter(f=>f.live).length;
+    const modelLine=d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a';
     const thoughtSteps=findings.map((f,i)=>'<div class=meta style="margin:6px 0 2px">🔍 <b>Retriever</b> · <code>'+esc(f.sql)+'</code> — '+f.rows_seen+' rows in '+(f.query_ms||0)+'ms '+(f.live?'<span class=n>live</span>':'<span class=n>sample</span>')+' <button class=mini-b onclick="copySqlTxt(\''+aid+'-sq'+i+'\',this)">copy SQL</button><span id='+aid+'-sq'+i+' style="display:none">'+esc(f.sql)+'</span></div>').join('');
     const thought='<details class=sql style="margin-top:10px"><summary>✓ done in '+secs+'s · '+liveN+'/'+findings.length+' live · confidence '+d.result.confidence+'</summary>'+
       '<div class=meta>Planner → split into '+findings.length+' Zetaris queries · recalled H-MEM context</div>'+thoughtSteps+
@@ -383,7 +384,6 @@ async function send(preset){
       '<div class=vpane style="display:none;padding-top:8px"><div id='+aid+'-tbl-'+i+'>'+tblHTML(f,aid,i,aid)+'</div></div></div></div>';
     }).join('');
     const fups=followups(text,d.result.findings).map(f=>'<button onclick="send(\''+f.replace(/'/g,"\\'")+'\')">'+f.replace(/</g,'&lt;')+'</button>').join('');
-    const modelLine=d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a';
     feed.innerHTML+='<div class=arow id='+aid+'><div class=aico>AI</div><div class=abody>'+
       '<div class=ameta>Advisor <span>'+secs+'s · '+d.result.confidence+' confidence · '+modelLine+'</span></div>'+
       '<div class=ans id='+aid+'-body>'+md(d.result.summary)+'</div>'+
