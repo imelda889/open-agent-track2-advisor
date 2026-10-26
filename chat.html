@@ -7,7 +7,6 @@
 body.sidehide #side{margin-left:-260px}
 html,body{height:100%;overflow:hidden}
 body.canvas-open #main{margin-right:min(620px,46vw)}
-html,body{height:100%;overflow:hidden}
 .brand{display:flex;align-items:center;gap:10px;padding:8px;font-weight:600}
 .brand .logo{width:32px;height:32px;border-radius:8px;background:#2563eb;display:grid;place-items:center;color:#fff;box-shadow:0 0 24px rgba(37,99,235,.35);font-weight:700}
 #newchat{margin:8px 0;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;background:#2563eb;color:#fff;padding:12px;font-size:14px;font-weight:600;cursor:pointer}
@@ -16,7 +15,7 @@ html,body{height:100%;overflow:hidden}
 #side input[type=text]:focus{border-color:rgba(59,130,246,.5)}
 #hist{flex:1;overflow-y:auto}
 .hgrp{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:#475569;margin:14px 4px 4px}
-.hitem{font-size:13px;color:#94a3b8;padding:9px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hitem{font-size:13px;color:#94a3b8;padding:9px 10px;border-radius:8px;cursor:pointer}
 .hitem{position:relative}
 .hitem.menu-open{z-index:50}
 .hitem:hover{background:rgba(255,255,255,.05);color:#e2e8f0}
@@ -248,7 +247,7 @@ function renderHist(){
   const f=(document.getElementById('hsearch').value||'').toLowerCase();
   h=h.filter(e=>!f||e.q.toLowerCase().includes(f));
   h=h.slice().sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
-  document.getElementById('hist').innerHTML=h.length?h.map(e=>'<div class=hitem onclick="recallHist(\''+e.id+'\')"><div class=rowline><span class=t>'+e.q.replace(/</g,'&lt;')+'</span>'+(e.pinned?'<span style="font-size:10px;color:#fbbf24">PINNED</span>':'')+'<span class=hact style="margin-left:auto"><button class=hdots onclick="event.stopPropagation();toggleMenu(\''+e.id+'\',this)" title="More">···</button><span class=hmenu id=menu-'+e.id+'><button onclick="event.stopPropagation();pinHist(\''+e.id+'\')">'+(e.pinned?'Unpin':'Pin to top')+'</button><button onclick="event.stopPropagation();shareHist(\''+e.id+'\')">Share transcript</button><button class=danger onclick="event.stopPropagation();delHist(\''+e.id+'\')">Delete</button></span></span></div><div class=rowline><small style="color:#64748b">'+new Date(e.t).toLocaleString()+'</small></div></div>').join(''):'<div class=hitem>no chats yet</div>';
+  document.getElementById('hist').innerHTML=h.length?h.map(e=>'<div class=hitem onclick="recallHist(\''+e.id+'\')"><div class=rowline><span class=t>'+e.q.replace(/</g,'&lt;')+'</span>'+(e.pinned?'<span style="font-size:10px;color:#fbbf24">PINNED</span>':'')+'<span class=hact style="margin-left:auto"><button class=hdots onclick="event.stopPropagation();toggleMenu(\''+e.id+'\',this)" title="More">···</button><span class=hmenu id=menu-'+e.id+'><button onclick="event.stopPropagation();pinHist(\''+e.id+'\')">'+(e.pinned?'Unpin':'Pin to top')+'</button><button onclick="event.stopPropagation();shareHist(\''+e.id+'\')">Share transcript</button><button class=danger onclick="event.stopPropagation();delHist(\''+e.id+'\')">Delete</button></span></span></div></div>').join(''):'<div class=hitem>no chats yet</div>';
 }
 function toggleMenu(id,btn){
   const m=document.getElementById('menu-'+id);
@@ -262,7 +261,7 @@ document.addEventListener('click',()=>{document.querySelectorAll('.hmenu.open').
 function findHist(id){const h=getHist();let e=h.find(x=>x.id===id);if(!e&&/^\d+$/.test(String(id)))e=h[parseInt(id,10)];return {h:h,e:e};}
 function recallHist(id){
   const {e}=findHist(id);if(!e)return;
-  feed.innerHTML='<div class=u><div class=b><span>'+e.q.replace(/</g,'&lt;')+'</span></div></div>'+e.html;
+  feed.innerHTML='<div class=u><div class=b><span>'+e.q.replace(/</g,'&lt;')+'</span><div style="font-size:10px;color:#93c5fd;opacity:.7;margin-top:4px;text-align:right">'+new Date(e.t).toLocaleString()+'</div></div></div>'+e.html;
   document.getElementById('starter').style.display='none';
   document.getElementById('log').scrollTop=1e9;
 }
@@ -400,7 +399,7 @@ async function send(preset){
   }
   const t0=Date.now(),qid='q'+t0;
   const plan=planPreview(text);
-  feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')" title="Edit and resend"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span><details style="margin-top:6px;font-size:12px"><summary style="cursor:pointer;color:#7dd3fd">View plan — '+plan.length+' Zetaris queries</summary>'+plan.map(s=>'<div style="margin:4px 0"><code>'+esc(s)+'</code></div>').join('')+'<div class=meta>+ H-MEM recall, critic review, Nightshift write-up</div></details></div></div>';
+  feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')" title="Edit and resend"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span><div style="font-size:10px;color:#93c5fd;opacity:.7;margin-top:4px;text-align:right">'+new Date(t0).toLocaleString()+'</div></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span><details style="margin-top:6px;font-size:12px"><summary style="cursor:pointer;color:#7dd3fd">View plan — '+plan.length+' Zetaris queries</summary>'+plan.map(s=>'<div style="margin:4px 0"><code>'+esc(s)+'</code></div>').join('')+'<div class=meta>+ H-MEM recall, critic review, Nightshift write-up</div></details></div></div>';
   document.getElementById('log').scrollTop=1e9;
   const phases=['Planning queries','Querying Zetaris sources','Critic reviewing evidence','Writing final answer'];
   const tick=setInterval(()=>{const el=document.getElementById('timer');if(!el){clearInterval(tick);return;}const s=Math.floor((Date.now()-t0)/1000);const ph=phases[Math.min(phases.length-1,Math.floor(s/8))];el.textContent=ph+'… '+s+'s';},500);
