@@ -29,7 +29,7 @@ async function nightshiftAnswer(question: string, memoryContext: string, evidenc
       messages: [
         {
           role: "user",
-          content: `You are a tech stack advisor. Answer ONLY from the evidence below, citing the source table for each claim. If evidence is thin, say what is missing.\n\nEVIDENCE:\n${evidence}\n\nMEMORY:\n${memoryContext}\n\nQuestion: ${question}`,
+          content: `You are a tech stack advisor. Start DIRECTLY with the answer - no preamble, no meta-commentary about what you are doing, no <think> blocks. Answer ONLY from the evidence below, citing the source table for each claim. Do NOT repeat full raw tables; summarize values and cite the table name. If evidence is thin, add a short "Evidence gaps" list at the end.\n\nEVIDENCE:\n${evidence}\n\nMEMORY:\n${memoryContext}\n\nQuestion: ${question}`,
         },
       ],
     }),

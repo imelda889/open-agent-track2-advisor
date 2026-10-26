@@ -3,7 +3,10 @@
 :root{--bg:#05070b;--panel:#090c12;--card:#0a0d13;--line:rgba(255,255,255,.08);--fg:#f4f7fb;--mut:#8b98ad;--acc:#38bdf8;--blue:#2563eb}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,ui-sans-serif,system-ui,"Segoe UI",Arial,sans-serif;font-size:15px}
 #app{display:flex;min-height:100vh}
-#side{width:260px;background:var(--panel);border-right:1px solid var(--line);padding:12px;flex-shrink:0;display:flex;flex-direction:column}
+#side{width:260px;background:var(--panel);border-right:1px solid var(--line);padding:12px;flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+html,body{height:100%;overflow:hidden}
+body.canvas-open #main{margin-right:min(620px,46vw)}
+html,body{height:100%;overflow:hidden}
 .brand{display:flex;align-items:center;gap:10px;padding:8px;font-weight:600}
 .brand .logo{width:32px;height:32px;border-radius:8px;background:#2563eb;display:grid;place-items:center;color:#fff;box-shadow:0 0 24px rgba(37,99,235,.35);font-weight:700}
 #newchat{margin:8px 0;display:flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;background:#2563eb;color:#fff;padding:12px;font-size:14px;font-weight:600;cursor:pointer}
@@ -14,7 +17,8 @@
 .hgrp{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:#475569;margin:14px 4px 4px}
 .hitem{font-size:13px;color:#94a3b8;padding:9px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hitem:hover{background:rgba(255,255,255,.05);color:#e2e8f0}
-#main{flex:1;min-width:0;display:flex;flex-direction:column}
+#main{flex:1;min-width:0;display:flex;flex-direction:column;transition:margin-right .25s}
+body.canvas-open #main{margin-right:min(620px,46vw)}
 header{display:flex;align-items:center;gap:10px;height:64px;border-bottom:1px solid var(--line);background:rgba(7,9,14,.8);padding:0 24px}
 header .t{font-weight:600}header .sub{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px}
 .dot{width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block}
@@ -121,7 +125,7 @@ code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-siz
 <div class="box"><textarea id="q" rows=2 placeholder="Ask anything about your data…"></textarea>
 <div class="qrow"><span class="hint">Enter to send · Shift+Enter newline</span><button id="go" onclick="send()" aria-label="Send"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button></div></div></div>
 </div></div>
-<div id="canvas"><div class="chead"><div style="display:flex;align-items:center;gap:8px"><b id="ctitle">Data Canvas</b><span style="flex:1"></span><button class="ctab" onclick="document.getElementById('canvas').classList.remove('open')">✕ Close</button></div><div style="margin-top:10px" id="ctabs"></div></div><div class="cbody" id="cbody"></div></div>
+<div id="canvas"><div class="chead"><div style="display:flex;align-items:center;gap:8px"><b id="ctitle">Data Canvas</b><span style="flex:1"></span><button class="ctab" onclick="document.getElementById('canvas').classList.remove('open');document.body.classList.remove('canvas-open')">✕ Close</button></div><div style="margin-top:10px" id="ctabs"></div></div><div class="cbody" id="cbody"></div></div>
 <script>
 const feed=document.getElementById('feed'),q=document.getElementById('q'),go=document.getElementById('go');
 q.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
@@ -194,7 +198,7 @@ function openCanvas(aid,fi){
     '<div class=vtabs><button class=on onclick="vtab(this,0)">Chart</button><button onclick="vtab(this,1)">Table</button></div>'+
     '<div class=vpane style="display:block"><div id=cv-ch>'+svgChart(f,aid+'|cv',fi,'cv-ch')+'</div></div>'+
     '<div class=vpane style="display:none"><div id=cv-tbl>'+tblHTML(f,aid,fi,'cv')+'</div></div>';
-  document.getElementById('canvas').classList.add('open');
+  document.getElementById('canvas').classList.add('open');document.body.classList.add('canvas-open');
 }
 const CLARIFY=[
  {t:'Tech stack — React vs Vue',d:'GitHub stars, forks, issues + npm downloads',q:'Should we adopt React or Vue for a new web project?'},
@@ -222,7 +226,9 @@ function renderHist(){
 function recallHist(i){
   let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}
   const e=h[i];if(!e)return;
-  feed.innerHTML=e.html;
+  feed.innerHTML='<div class=u><div class=b><span>'+e.q.replace(/</g,'&lt;')+'</span></div></div>'+e.html;
+  document.getElementById('starter').style.display='none';
+  document.getElementById('log').scrollTop=1e9;
 }
 function copyTxt(id,btn){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText).then(()=>{const o=btn.innerHTML;btn.innerHTML='✓';setTimeout(()=>btn.innerHTML=o,1200);});}
 function copySQL(id,btn){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText).then(()=>{const o=btn.innerHTML;btn.innerHTML='✓';setTimeout(()=>btn.innerHTML=o,1200);});}
@@ -326,16 +332,6 @@ function toCSVrows(f){
   return out.join('\n');
 }
 function copySqlTxt(id,btn){const el=document.getElementById(id);if(!el)return;try{navigator.clipboard.writeText(el.textContent).then(()=>{const o=btn.innerHTML;btn.innerHTML='✓';setTimeout(()=>btn.innerHTML=o,1200);});}catch(e){}}
-function openCanvas(aid,fi){
-  const rec=RCACHE[aid];if(!rec)return;CCUR=aid;
-  const f=rec.d.result.findings[fi];if(!f)return;
-  document.getElementById('ctitle').textContent=f.sources[0];
-  document.getElementById('cbody').innerHTML=
-    '<div class=vtabs><button class=on onclick="vtab(this,0)">Chart</button><button onclick="vtab(this,1)">Table</button></div>'+
-    '<div class=vpane style="display:block"><div id=cv-ch>'+svgChart(f,aid+'|cv',fi,'cv-ch')+'</div></div>'+
-    '<div class=vpane style="display:none"><div id=cv-tbl>'+tblHTML(f,aid,fi,'cv')+'</div></div>';
-  document.getElementById('canvas').classList.add('open');
-}
 async function send(preset){
   if(go.dataset.busy==='1'){if(aborter)aborter.abort();return;}
   const text=(preset!==undefined?preset:q.value).trim();if(!text)return;
@@ -370,14 +366,14 @@ async function send(preset){
     RCACHE[aid]={d:d,findings:findings};
     const liveN=findings.filter(f=>f.live).length;
     const modelLine=d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a';
-    const thoughtSteps=findings.map((f,i)=>'<div class=meta style="margin:6px 0 2px">🔍 <b>Retriever</b> · <code>'+esc(f.sql)+'</code> — '+f.rows_seen+' rows in '+(f.query_ms||0)+'ms '+(f.live?'<span class=n>live</span>':'<span class=n>sample</span>')+' <button class=mini-b onclick="copySqlTxt(\''+aid+'-sq'+i+'\',this)">copy SQL</button><span id='+aid+'-sq'+i+' style="display:none">'+esc(f.sql)+'</span></div>').join('');
+    const thoughtSteps=findings.map((f,i)=>'<div class=meta style="margin:6px 0 2px"><b>Retriever</b> · <code>'+esc(f.sql)+'</code> — '+f.rows_seen+' rows in '+(f.query_ms||0)+'ms '+(f.live?'<span class=n>live</span>':'<span class=n>sample</span>')+' <button class=mini-b onclick="copySqlTxt(\''+aid+'-sq'+i+'\',this)">copy SQL</button><span id='+aid+'-sq'+i+' style="display:none">'+esc(f.sql)+'</span></div>').join('');
     const thought='<details class=sql style="margin-top:10px"><summary>✓ done in '+secs+'s · '+liveN+'/'+findings.length+' live · confidence '+d.result.confidence+'</summary>'+
       '<div class=meta>Planner → split into '+findings.length+' Zetaris queries · recalled H-MEM context</div>'+thoughtSteps+
       '<div class=meta>Critic: '+((d.collaboration&&d.collaboration.revision_count>0)?('requested revision ×'+d.collaboration.revision_count):'approved')+' · ReportWriter: '+modelLine+'</div>'+
       '<div style="margin-top:6px"><button class=mini-b onclick="fb(\''+text.replace(/'/g,"\\'")+'\',false,this)">Report wrong answer</button></div></details>';
     const cards=findings.map((f,i)=>{
       return '<div class=card><div class=cardhead>'+esc(f.sources[0])+' <span class=n>'+f.rows_seen+' rows · '+(f.query_ms||0)+'ms · '+(f.live?'live':'sample')+'</span>'+
-      '<button class=mini-b onclick="openCanvas(\''+aid+'\','+i+')">Expand ⤢</button>'+
+      '<button class=mini-b onclick="openCanvas(\''+aid+'\','+i+')" title="Open in side canvas">Open in canvas ⤢</button>'+
       '<button class=mini-b onclick="dlCSV(\'evidence-'+t0+'-'+i+'.csv\',\''+toCSV([f]).replace(/'/g,"\\'").replace(/\n/g,'\\n')+'\')">Export CSV</button></div>'+
       '<div style="padding:4px 12px 12px"><div class=vtabs><button class=on onclick="vtab(this,0)">Chart</button><button onclick="vtab(this,1)">Table</button></div>'+
       '<div class=vpane style="display:block;padding-top:8px"><div id='+aid+'-ch-'+i+'>'+svgChart(f,aid,i,aid+'-ch-'+i)+'</div></div>'+
@@ -392,7 +388,7 @@ async function send(preset){
       '<button onclick="send(\''+text.replace(/'/g,"\\'")+'\')" title="Regenerate">Retry</button>'+
       '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',true,this)" title="Good answer">Good</button>'+
       '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',false,this)" title="Bad answer">Bad</button>'+
-      '<button onclick="openCanvas(\''+aid+'\,'+(findings.length?0:0)+')">Expand ⤢</button></div>'+
+      '<button onclick="openCanvas(\''+aid+'\,'+(findings.length?0:0)+')" title="Open in side canvas">Open in canvas ⤢</button></div>'+
       '<div class=chips>'+fups+'</div></div></div>';
     saveHist({q:text,t:t0,html:document.getElementById(aid).outerHTML});
     try{document.getElementById('hmodel').textContent=d.ai_provider?d.ai_provider.model.split('/').pop():'auto';}catch(e){}
