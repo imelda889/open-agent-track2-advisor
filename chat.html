@@ -22,13 +22,13 @@ body.canvas-open #main{margin-right:min(620px,46vw)}
 .hitem .rowline{display:flex;align-items:center;gap:6px}
 .hitem .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hact{position:relative}
-.hdots{background:transparent;border:0;color:#64748b;font-size:14px;cursor:pointer;padding:2px 6px;border-radius:6px;letter-spacing:1px}
+.hdots{background:transparent;border:0;color:#64748b;font-size:14px;cursor:pointer;padding:2px 6px;border-radius:6px;letter-spacing:1px;margin-left:auto;flex-shrink:0}
 .hitem:hover .hdots{color:#cbd5e1}
 .hdots:hover{background:rgba(255,255,255,.08)}
-.hmenu{display:none;position:absolute;right:0;top:100%;z-index:60;background:#0b1220;border:1px solid #334155;border-radius:10px;padding:4px;min-width:130px;box-shadow:0 10px 30px rgba(0,0,0,.5);user-select:none}
-.hmenu.open{display:block}
-.hmenu button{display:block;width:100%;text-align:left;background:transparent;border:0;color:#cbd5e1;font-size:12px;padding:8px 10px;border-radius:6px;cursor:pointer}
-.hmenu button:hover{background:rgba(255,255,255,.06)}
+.hmenu{display:none;padding:4px 0 2px;gap:6px}
+.hmenu.open{display:flex;flex-wrap:wrap}
+.hmenu button{background:rgba(255,255,255,.06);border:1px solid #334155;color:#cbd5e1;font-size:11px;border-radius:999px;padding:4px 12px;cursor:pointer}
+.hmenu button:hover{border-color:#38bdf8;color:#fff}
 .hmenu button.danger{color:#fca5a5}
 #menuBtn{background:transparent;border:1px solid var(--line);color:#94a3b8;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:14px}
 #menuBtn:hover{color:#fff;border-color:#38bdf8}
@@ -247,17 +247,15 @@ function renderHist(){
   const f=(document.getElementById('hsearch').value||'').toLowerCase();
   h=h.filter(e=>!f||e.q.toLowerCase().includes(f));
   h=h.slice().sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
-  document.getElementById('hist').innerHTML=h.length?h.map(e=>'<div class=hitem onclick="recallHist(\''+e.id+'\')"><div class=rowline><span class=t>'+e.q.replace(/</g,'&lt;')+'</span>'+(e.pinned?'<span style="font-size:10px;color:#fbbf24">PINNED</span>':'')+'<span class=hact style="margin-left:auto"><button class=hdots onclick="event.stopPropagation();toggleMenu(\''+e.id+'\',this)" title="More">···</button><span class=hmenu id=menu-'+e.id+'><button onclick="event.stopPropagation();pinHist(\''+e.id+'\')">'+(e.pinned?'Unpin':'Pin to top')+'</button><button onclick="event.stopPropagation();shareHist(\''+e.id+'\')">Share transcript</button><button class=danger onclick="event.stopPropagation();delHist(\''+e.id+'\')">Delete</button></span></span></div></div>').join(''):'<div class=hitem>no chats yet</div>';
+  document.getElementById('hist').innerHTML=h.length?h.map(e=>'<div class=hitem onclick="recallHist(\''+e.id+'\')"><div class=rowline><span class=t>'+e.q.replace(/</g,'&lt;')+'</span>'+(e.pinned?'<span style="font-size:10px;color:#fbbf24">PINNED</span>':'')+'<button class=hdots onclick="event.stopPropagation();toggleMenu(\''+e.id+'\')" title="More">···</button></div><div class=hmenu id=menu-'+e.id+'><button onclick="event.stopPropagation();pinHist(\''+e.id+'\')">'+(e.pinned?'Unpin':'Pin to top')+'</button><button onclick="event.stopPropagation();shareHist(\''+e.id+'\')">Share transcript</button><button class=danger onclick="event.stopPropagation();delHist(\''+e.id+'\')">Delete</button></div></div>').join(''):'<div class=hitem>no chats yet</div>';
 }
-function toggleMenu(id,btn){
+function toggleMenu(id){
   const m=document.getElementById('menu-'+id);
-  const item=btn.closest('.hitem');
   const was=m&&m.classList.contains('open');
   document.querySelectorAll('.hmenu.open').forEach(x=>x.classList.remove('open'));
-  document.querySelectorAll('.hitem.menu-open').forEach(x=>x.classList.remove('menu-open'));
-  if(m&&!was){m.classList.add('open');if(item)item.classList.add('menu-open');}
+  if(m&&!was)m.classList.add('open');
 }
-document.addEventListener('click',()=>{document.querySelectorAll('.hmenu.open').forEach(x=>x.classList.remove('open'));document.querySelectorAll('.hitem.menu-open').forEach(x=>x.classList.remove('menu-open'));});
+document.addEventListener('click',()=>{document.querySelectorAll('.hmenu.open').forEach(x=>x.classList.remove('open'));});
 function findHist(id){const h=getHist();let e=h.find(x=>x.id===id);if(!e&&/^\d+$/.test(String(id)))e=h[parseInt(id,10)];return {h:h,e:e};}
 function recallHist(id){
   const {e}=findHist(id);if(!e)return;
