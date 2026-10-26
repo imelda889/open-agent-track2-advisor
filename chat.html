@@ -81,6 +81,27 @@ details.fold summary:hover{color:#94a3b8}
 #go{margin-left:auto;width:40px;height:40px;border-radius:12px;border:0;background:#2563eb;color:#fff;cursor:pointer;display:grid;place-items:center}
 #go:hover{background:#3b82f6}#go:disabled{background:#1e293b;color:#475569;cursor:default}
 #go.stop{background:#7f1d1d}
+.vtabs{display:flex;gap:6px;margin:10px 0 0}
+.vtabs button{font-size:12px;background:transparent;border:1px solid #334155;color:#94a3b8;border-radius:8px 8px 0 0;padding:7px 14px;cursor:pointer}
+.vtabs button.on{background:#0b1220;color:#fff;border-color:#38bdf8;border-bottom:0}
+.vpane{display:none}.vpane.on{display:block}
+th.sortable{cursor:pointer;user-select:none}th.sortable:hover{color:#fff}
+.clar{display:grid;gap:8px;margin:10px 0}
+.clar button{text-align:left;background:#0b1220;border:1px solid #334155;color:#e2e8f0;border-radius:10px;padding:10px 12px;cursor:pointer;font-size:13px}
+.clar button:hover{border-color:#38bdf8}
+.clar button small{display:block;color:#64748b;margin-top:2px}
+#canvas{position:fixed;top:0;right:0;bottom:0;width:min(620px,46vw);background:#090c12;border-left:1px solid #334155;transform:translateX(102%);transition:transform .25s;z-index:50;display:flex;flex-direction:column}
+#canvas.open{transform:none}
+#canvas .chead{padding:14px 16px;border-bottom:1px solid #334155}
+#canvas .cbody{flex:1;overflow:auto;padding:16px}
+.ctab{font-size:12px;background:transparent;border:1px solid #334155;color:#94a3b8;border-radius:8px;padding:6px 12px;cursor:pointer;margin-right:6px}
+.ctab.on{background:#1e293b;color:#fff;border-color:#38bdf8}
+.lchip{font-size:11px;border:1px solid #334155;border-radius:999px;padding:3px 10px;cursor:pointer;margin-right:6px;background:transparent;color:#cbd5e1}
+.lchip.off{opacity:.35}
+.bar{fill:#2563eb}.bar:hover{fill:#38bdf8}
+.ln{fill:none;stroke-width:2}
+.dotp{fill:#0b1220;stroke-width:2}
+.axlbl{fill:#64748b;font-size:10px}
 .spin{display:inline-block;width:15px;height:15px;border:2px solid #334155;border-top-color:#38bdf8;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-3px;margin-right:8px}
 @keyframes sp{to{transform:rotate(360deg)}}
 code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-size:13px}
@@ -100,6 +121,7 @@ code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-siz
 <div class="box"><textarea id="q" rows=2 placeholder="Ask anything about your data…"></textarea>
 <div class="qrow"><span class="hint">Enter to send · Shift+Enter newline</span><button id="go" onclick="send()" aria-label="Send"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button></div></div></div>
 </div></div>
+<div id="canvas"><div class="chead"><div style="display:flex;align-items:center;gap:8px"><b id="ctitle">Data Canvas</b><span style="flex:1"></span><button class="ctab" onclick="document.getElementById('canvas').classList.remove('open')">✕ Close</button></div><div style="margin-top:10px" id="ctabs"></div></div><div class="cbody" id="cbody"></div></div>
 <script>
 const feed=document.getElementById('feed'),q=document.getElementById('q'),go=document.getElementById('go');
 q.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
@@ -156,6 +178,23 @@ function toCSV(findings){
   return out.join('\n');
 }
 function dlCSV(name,text){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type:'text/csv'}));a.download=name;a.click();}
+function vtab(btn,n){const bar=btn.parentElement;const btns=bar.querySelectorAll('button');btns.forEach((b,i)=>b.classList.toggle('on',i===n));let p=bar.nextElementSibling,i=0;while(p&&p.classList&&p.classList.contains('vpane')){p.style.display=i===n?'block':'none';i++;p=p.nextElementSibling;}}
+function copySqlTxt(id,btn){const el=document.getElementById(id);if(!el)return;try{navigator.clipboard.writeText(el.textContent).then(()=>{const o=btn.innerHTML;btn.innerHTML='✓';setTimeout(()=>btn.innerHTML=o,1200);});}catch(e){}}
+function openCanvas(aid,fi){
+  const rec=RCACHE[aid];if(!rec||!rec.d)return;CCUR=aid;
+  const f=rec.d.result.findings[fi];if(!f)return;
+  document.getElementById('ctitle').textContent=f.sources[0];
+  document.getElementById('cbody').innerHTML=
+    '<div class=vtabs><button class=on onclick="vtab(this,0)">Chart</button><button onclick="vtab(this,1)">Table</button></div>'+
+    '<div class=vpane style="display:block"><div id=cv-ch>'+svgChart(f,aid+'|cv',fi,'cv-ch')+'</div></div>'+
+    '<div class=vpane style="display:none"><div id=cv-tbl>'+tblHTML(f,aid,fi,'cv')+'</div></div>';
+  document.getElementById('canvas').classList.add('open');
+}
+const CLARIFY=[
+ {t:'Tech stack — React vs Vue',d:'GitHub stars, forks, issues + npm downloads',q:'Should we adopt React or Vue for a new web project?'},
+ {t:'Pokemon stats',d:'Base stats and types from PokeAPI',q:'Which Pokemon has the highest base stats and why?'},
+ {t:'npm downloads',d:'Weekly download counts comparison',q:'Compare npm download counts of react and vue with evidence'}
+];
 function followups(text,findings){
   const t=text.toLowerCase(),out=[];
   const has=w=>t.includes(w);
@@ -184,11 +223,115 @@ function copySQL(id,btn){const el=document.getElementById(id);if(!el)return;navi
 async function fb(traceQ,helpful,btn){
   try{await fetch('http://localhost:8000/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_query:traceQ,helpful:helpful})});btn.innerHTML=helpful?'👍 ✓':'👎 ✓';btn.style.color='#34d399';}catch(e){}
 }
+const RCACHE={};const CHSTATE={};const SORTST={};const CHSRC={};let CCUR=null;
+function copyText(t,btn){try{navigator.clipboard.writeText(t).then(()=>{if(!btn)return;const o=btn.innerHTML;btn.innerHTML='✓';setTimeout(()=>btn.innerHTML=o,1200);});}catch(e){}}
+function seriesOf(f){
+  const rows=(f.sample_rows||[]).map(r=>Array.isArray(r)?r:Object.values(r));
+  if(!rows.length)return null;
+  const cols=(f.columns&&f.columns.length===rows[0].length)?f.columns:rows[0].map((_,i)=>'c'+i);
+  let li=-1;
+  for(let i=0;i<cols.length;i++){if(rows.every(r=>typeof r[i]==='string'&&isNaN(Number(r[i])))){li=i;break;}}
+  if(li<0)li=0;
+  const series=[];
+  for(let i=0;i<cols.length;i++){if(i===li)continue;if(rows.every(r=>r[i]!==null&&r[i]!==''&&!isNaN(Number(r[i]))))series.push({name:cols[i],values:rows.map(r=>Number(r[i]))});}
+  if(!series.length)return null;
+  return {labels:rows.map(r=>String(r[li]).slice(0,16)),series};
+}
+function svgChart(f,aid,fi,cid){
+  CHSRC[cid]={aid:aid,fi:fi};
+  const key=aid+'_'+fi;const st=CHSTATE[key]||(CHSTATE[key]={hidden:[],mode:'bar'});
+  const s=seriesOf(f);if(!s)return '<div class=meta>no numeric columns to chart</div>';
+  const pal=['#2563eb','#38bdf8','#34d399','#f59e0b','#f472b6'];
+  const vis=s.series.map((_,i)=>i).filter(i=>st.hidden.indexOf(i)<0);
+  const W=560,H=230,pl=48,pr=10,pt=12,pb=30;
+  const allv=[];vis.forEach(i=>s.series[i].values.forEach(v=>allv.push(v)));
+  const max=Math.max.apply(null,allv.concat([1]));
+  const M=s.labels.length;
+  const gx=i=>pl+(W-pl-pr)*(M>1?i/(M-1):0.5);
+  const gy=v=>pt+(H-pt-pb)*(1-v/max);
+  let g='';
+  for(let k=0;k<=4;k++){const v=max*k/4,y=gy(v);g+='<line x1='+pl+' y1='+y+' x2='+(W-pr)+' y2='+y+' stroke="#1e293b" stroke-width="1"/><text x='+(pl-4)+' y='+(y+3)+' text-anchor=end class=axlbl>'+(v>=1000?(v/1000)+'k':Math.round(v))+'</text>';}
+  let body='';
+  if(st.mode==='bar'){
+    const gw=(W-pl-pr)/M,bw=Math.min(34,gw/(vis.length+1));
+    vis.forEach((si,k)=>{
+      const c=pal[si%pal.length];
+      s.series[si].values.forEach((v,i)=>{
+        const h=(H-pt-pb)*(v/max),x=gx(i)-vis.length*bw/2+k*bw,y=pt+(H-pt-pb)-h;
+        body+='<rect class=bar x='+x.toFixed(1)+' y='+y.toFixed(1)+' width='+(bw-2).toFixed(1)+' height='+Math.max(h,2).toFixed(1)+' rx=2 fill='+c+'><title>'+esc(s.labels[i])+': '+s.series[si].name+' = '+v.toLocaleString()+'</title></rect>';
+      });
+    });
+    body+=s.labels.map((l,i)=>'<text x='+gx(i)+' y='+(H-10)+' text-anchor=middle class=axlbl>'+esc(l)+'</text>').join('');
+  } else {
+    vis.forEach(si=>{
+      const c=pal[si%pal.length];
+      const pts=s.series[si].values.map((v,i)=>gx(i).toFixed(1)+','+gy(v).toFixed(1)).join(' ');
+      body+='<polyline class=ln points="'+pts+'" stroke='+c+' fill=none/>';
+      s.series[si].values.forEach((v,i)=>{body+='<circle class=dotp cx='+gx(i)+' cy='+gy(v)+' r=4 stroke='+c+'><title>'+esc(s.labels[i])+': '+s.series[si].name+' = '+v.toLocaleString()+'</title></circle>';});
+    });
+    body+=s.labels.map((l,i)=>'<text x='+gx(i)+' y='+(H-10)+' text-anchor=middle class=axlbl>'+esc(l)+'</text>').join('');
+  }
+  const leg=s.series.map((sr,i)=>'<span class="lchip'+(st.hidden.indexOf(i)>=0?' off':'')+'" onclick="tglSeries(\''+cid+'\','+i+')" style="border-color:'+pal[i%pal.length]+'">'+esc(sr.name)+'</span>').join('');
+  const modes='<button class="ctab'+(st.mode==='bar'?' on':'')+'" onclick="setCMode(\''+cid+'\',\'bar\')">Bar</button><button class="ctab'+(st.mode==='line'?' on':'')+'" onclick="setCMode(\''+cid+'\',\'line\')">Line</button>';
+  return '<div style="margin-bottom:8px">'+modes+'</div><div style="margin-bottom:8px">'+leg+'</div><svg width="100%" viewBox="0 0 '+W+' '+H+'" style="max-width:620px">'+g+body+'</svg>';
+}
+function tglSeries(cid,i){const cx=CHSRC[cid];if(!cx)return;const key=cx.aid+'_'+cx.fi;const st=CHSTATE[key];if(!st)return;const at=st.hidden.indexOf(i);if(at>=0)st.hidden.splice(at,1);else st.hidden.push(i);refreshChart(cid);}
+function setCMode(cid,m){const cx=CHSRC[cid];if(!cx)return;const key=cx.aid+'_'+cx.fi;const st=CHSTATE[key]||(CHSTATE[key]={hidden:[],mode:'bar'});st.mode=m;refreshChart(cid);}
+function refreshChart(cid){
+  const el=document.getElementById(cid);if(!el)return;
+  const cx=CHSRC[cid];if(!cx)return;
+  const d=RCACHE[cx.aid];if(!d||!d.result||!d.result.findings||!d.result.findings[cx.fi])return;
+  el.innerHTML=svgChart(d.result.findings[cx.fi],cx.aid,cx.fi,cid);
+}
+function tblHTML(f,aid,fi,ctx){
+  const key=aid+'_'+fi;const st=SORTST[key]||{};
+  const cols=(f.columns&&f.columns.length)?f.columns:(f.sample_rows[0]?(Array.isArray(f.sample_rows[0])?f.sample_rows[0].map((_,i)=>'c'+i):Object.keys(f.sample_rows[0])):[]);
+  let rows=(f.sample_rows||[]).map(r=>Array.isArray(r)?r:Object.values(r));
+  if(st.col!==undefined){const c=st.col,dir=st.dir||1;rows=rows.slice().sort((a,b)=>{const x=a[c],y=b[c];const nx=Number(x),ny=Number(y);if(!isNaN(nx)&&!isNaN(ny)&&x!==''&&y!=='')return (nx-ny)*dir;return String(x).localeCompare(String(y))*dir;});}
+  let h='<div style="overflow:auto;max-height:280px"><table class=dt><tr>'+cols.map((c,i)=>'<th class=sortable onclick="sortTbl(\''+aid+'\','+fi+','+i+',\''+ctx+'\')">'+esc(c)+(st.col===i?(st.dir===1?' ▲':' ▼'):'')+'</th>').join('')+'</tr>';
+  rows.forEach(r=>{h+='<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>';});
+  return h+'</table></div>';
+}
+function sortTbl(aid,fi,ci,ctx){
+  const key=aid+'_'+fi;const st=SORTST[key]||(SORTST[key]={});
+  if(st.col===ci)st.dir=-(st.dir||1);else{st.col=ci;st.dir=1;}
+  const d=RCACHE[aid];if(!d)return;
+  const host=document.getElementById(ctx+'-tbl-'+fi);
+  if(host)host.innerHTML=tblHTML(d.result.findings[fi],aid,fi,ctx);
+}
+function toCSVrows(f){
+  const cols=(f.columns&&f.columns.length)?f.columns:[];
+  const rows=(f.sample_rows||[]).map(r=>Array.isArray(r)?r:Object.values(r));
+  const out=[cols.join(',')];
+  rows.forEach(r=>out.push(r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')));
+  return out.join('\n');
+}
+function copySqlTxt(id,btn){const el=document.getElementById(id);if(!el)return;try{navigator.clipboard.writeText(el.textContent).then(()=>{const o=btn.innerHTML;btn.innerHTML='✓';setTimeout(()=>btn.innerHTML=o,1200);});}catch(e){}}
+function openCanvas(aid,fi){
+  const rec=RCACHE[aid];if(!rec)return;CCUR=aid;
+  const f=rec.d.result.findings[fi];if(!f)return;
+  document.getElementById('ctitle').textContent=f.sources[0];
+  document.getElementById('cbody').innerHTML=
+    '<div class=vtabs><button class=on onclick="vtab(this,0)">Chart</button><button onclick="vtab(this,1)">Table</button></div>'+
+    '<div class=vpane style="display:block"><div id=cv-ch>'+svgChart(f,aid+'|cv',fi,'cv-ch')+'</div></div>'+
+    '<div class=vpane style="display:none"><div id=cv-tbl>'+tblHTML(f,aid,fi,'cv')+'</div></div>';
+  document.getElementById('canvas').classList.add('open');
+}
 async function send(preset){
   if(go.dataset.busy==='1'){if(aborter)aborter.abort();return;}
   const text=(preset!==undefined?preset:q.value).trim();if(!text)return;
   q.value='';go.dataset.busy='1';go.innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';go.classList.add('stop');
   aborter=new AbortController();
+  if(!window.__asked){
+    window.__asked=true;
+    const KEYW=/react|vue|framework|librar|adopt|npm|github|star|download|pokemon|pikachu|charizard|stat|type|taxi|trip|demand|sale|store|retail|customer|order/i;
+    if(!KEYW.test(text)){
+      feed.innerHTML+='<div class=u><div class=b><span>'+text.replace(/</g,'&lt;')+'</span></div></div><div class=arow><div class=abody><div><b>Which data should I use?</b> <span class=meta>pick one to continue</span></div><div class=clar>'+CLARIFY.map(c=>'<button onclick="send(\''+c.q.replace(/'/g,"\\'")+'\')">'+c.t+'<small>'+c.d+'</small></button>').join('')+'</div></div></div>';
+      go.dataset.busy='';go.innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>';go.classList.remove('stop');
+      document.getElementById('log').scrollTop=1e9;
+      return;
+    }
+  }
   const t0=Date.now(),qid='q'+t0;
   feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')" title="Edit and resend"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span></div></div>';
   document.getElementById('log').scrollTop=1e9;
@@ -202,20 +345,33 @@ async function send(preset){
     document.getElementById('tmp').remove();
     const secs=((d.elapsed_ms||(Date.now()-t0))/1000).toFixed(1);
     const aid='a'+t0;
-    const ev=(d.result.findings||[]).map((f,i)=>'<div class=card><div class=cardhead>'+esc(f.sources[0])+' <span class=n>'+f.rows_seen+' rows · '+(f.query_ms||0)+'ms · '+(f.live?'live':'sample')+'</span><button class=mini-b onclick="dlCSV(\'evidence-'+t0+'-'+i+'.csv\',\''+toCSV([f]).replace(/'/g,"\\'").replace(/\n/g,'\\n')+'\')">Export CSV</button></div>'+renderTable(f.sample_rows,f.columns)+'</div>').join('');
-    const bars=(d.result.findings||[]).map(f=>renderBars(f.sample_rows||[])).join('');
-    const sqls=(d.result.findings||[]).map((f,i)=>'<details class=sql><summary>View generated SQL — '+esc(f.sources[0])+' ('+(f.query_ms||0)+'ms) <button class=mini-b onclick="event.preventDefault();copySQL(\''+aid+'-sql'+i+'\',this)">copy</button></summary><div class=sqlbox id='+aid+'-sql'+i+'>'+esc(f.sql)+'</div></details>').join('');
+    const findings=d.result.findings||[];
+    RCACHE[aid]={d:d,findings:findings};
+    const liveN=findings.filter(f=>f.live).length;
+    const thoughtSteps=findings.map((f,i)=>'<div class=meta style="margin:6px 0 2px">🔍 <b>Retriever</b> · <code>'+esc(f.sql)+'</code> — '+f.rows_seen+' rows in '+(f.query_ms||0)+'ms '+(f.live?'<span class=n>live</span>':'<span class=n>sample</span>')+' <button class=mini-b onclick="copySqlTxt(\''+aid+'-sq'+i+'\',this)">copy SQL</button><span id='+aid+'-sq'+i+' style="display:none">'+esc(f.sql)+'</span></div>').join('');
+    const thought='<details class=sql style="margin-top:10px"><summary>✓ done in '+secs+'s · '+liveN+'/'+findings.length+' live · confidence '+d.result.confidence+'</summary>'+
+      '<div class=meta>Planner → split into '+findings.length+' Zetaris queries · recalled H-MEM context</div>'+thoughtSteps+
+      '<div class=meta>Critic: '+((d.collaboration&&d.collaboration.revision_count>0)?('requested revision ×'+d.collaboration.revision_count):'approved')+' · ReportWriter: '+modelLine+'</div>'+
+      '<div style="margin-top:6px"><button class=mini-b onclick="fb(\''+text.replace(/'/g,"\\'")+'\',false,this)">Report wrong answer</button></div></details>';
+    const cards=findings.map((f,i)=>{
+      return '<div class=card><div class=cardhead>'+esc(f.sources[0])+' <span class=n>'+f.rows_seen+' rows · '+(f.query_ms||0)+'ms · '+(f.live?'live':'sample')+'</span>'+
+      '<button class=mini-b onclick="openCanvas(\''+aid+'\','+i+')">Expand ⤢</button>'+
+      '<button class=mini-b onclick="dlCSV(\'evidence-'+t0+'-'+i+'.csv\',\''+toCSV([f]).replace(/'/g,"\\'").replace(/\n/g,'\\n')+'\')">Export CSV</button></div>'+
+      '<div style="padding:4px 12px 12px"><div class=vtabs><button class=on onclick="vtab(this,0)">Chart</button><button onclick="vtab(this,1)">Table</button></div>'+
+      '<div class=vpane style="display:block;padding-top:8px"><div id='+aid+'-ch-'+i+'>'+svgChart(f,aid,i,aid+'-ch-'+i)+'</div></div>'+
+      '<div class=vpane style="display:none;padding-top:8px"><div id='+aid+'-tbl-'+i+'>'+tblHTML(f,aid,i,aid)+'</div></div></div></div>';
+    }).join('');
     const fups=followups(text,d.result.findings).map(f=>'<button onclick="send(\''+f.replace(/'/g,"\\'")+'\')">'+f.replace(/</g,'&lt;')+'</button>').join('');
     const modelLine=d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a';
     feed.innerHTML+='<div class=arow id='+aid+'><div class=aico>AI</div><div class=abody>'+
       '<div class=ameta>Advisor <span>'+secs+'s · '+d.result.confidence+' confidence · '+modelLine+'</span></div>'+
       '<div class=ans id='+aid+'-body>'+md(d.result.summary)+'</div>'+
-      (bars?'<div class=card style="padding:14px 16px"><div style="font-size:12px;color:#94a3b8;margin-bottom:6px">At a glance</div>'+bars+'</div>':'')+ev+sqls+
+      thought+cards+
       '<div class=actrow><button onclick="copyTxt(\''+aid+'-body\',this)" title="Copy answer">Copy</button>'+
       '<button onclick="send(\''+text.replace(/'/g,"\\'")+'\')" title="Regenerate">Retry</button>'+
       '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',true,this)" title="Good answer">Good</button>'+
       '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',false,this)" title="Bad answer">Bad</button>'+
-      '<span class=stat><details style="display:inline"><summary style="display:inline;cursor:pointer;color:#94a3b8">Thought for '+secs+'s</summary><span> · '+(d.agents_used||[]).join(' → ')+' · '+d.log_path+'</span></details></span></div>'+
+      '<button onclick="openCanvas(\''+aid+'\,'+(findings.length?0:0)+')">Expand ⤢</button></div>'+
       '<div class=chips>'+fups+'</div></div></div>';
     saveHist({q:text,t:t0,html:document.getElementById(aid).outerHTML});
     try{document.getElementById('hmodel').textContent=d.ai_provider?d.ai_provider.model.split('/').pop():'auto';}catch(e){}
