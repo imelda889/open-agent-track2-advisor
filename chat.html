@@ -16,7 +16,17 @@ html,body{height:100%;overflow:hidden}
 #hist{flex:1;overflow-y:auto}
 .hgrp{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:#475569;margin:14px 4px 4px}
 .hitem{font-size:13px;color:#94a3b8;padding:9px 10px;border-radius:8px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hitem{position:relative}
 .hitem:hover{background:rgba(255,255,255,.05);color:#e2e8f0}
+.hitem .rowline{display:flex;align-items:center;gap:6px}
+.hitem .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hact{display:none;gap:2px}
+.hitem:hover .hact{display:flex}
+.hact button{background:transparent;border:0;color:#7dd3fd;font-size:10px;cursor:pointer;padding:2px 4px;border-radius:6px}
+.hact button:hover{background:rgba(255,255,255,.08);color:#fff}
+.hact button.on{color:#fbbf24}
+#jumpLatest{position:fixed;right:32px;bottom:150px;display:none;background:#0b1220;border:1px solid #38bdf8;color:#7dd3fd;border-radius:999px;padding:6px 14px;font-size:12px;cursor:pointer;z-index:30}
+#jumpLatest.show{display:block}
 #main{flex:1;min-width:0;display:flex;flex-direction:column;transition:margin-right .25s}
 body.canvas-open #main{margin-right:min(620px,46vw)}
 header{display:flex;align-items:center;gap:10px;height:64px;border-bottom:1px solid var(--line);background:rgba(7,9,14,.8);padding:0 24px}
@@ -24,7 +34,7 @@ header .t{font-weight:600}header .sub{font-size:12px;color:var(--mut);display:fl
 .dot{width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block}
 .srcpill{margin-left:auto;font-size:12px;color:#94a3b8;border:1px solid var(--line);border-radius:8px;padding:7px 12px}
 .badge{display:inline-block;font-size:11px;background:#065f46;border-radius:20px;padding:2px 10px;margin-left:8px;vertical-align:middle}
-#log{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#263244 transparent}
+#log{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#263244 transparent;scroll-behavior:smooth;position:relative}
 #log::-webkit-scrollbar{width:8px}#log::-webkit-scrollbar-thumb{background:#263244;border-radius:999px}
 .wrap{max-width:900px;margin:0 auto;padding:28px 24px 12px}
 .u{display:flex;justify-content:flex-end;margin:6px 0}
@@ -120,6 +130,7 @@ code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-siz
 <div id="main">
 <header><div><div class="t">Tech Stack Advisor</div><div class="sub"><span class="dot"></span>Connected to Zetaris · <span id="hmodel">Nightshift auto</span></div></div></header>
 <div id="log"><div class="wrap" id="feed"></div></div>
+<button id="jumpLatest" onclick="document.getElementById('log').scrollTo({top:1e9,behavior:'smooth'})">↓ latest</button>
 <div id="composer"><div id="schema"></div>
 <div class="chips" id="starter" style="max-width:900px;margin:0 auto 8px"></div>
 <div class="box"><textarea id="q" rows=2 placeholder="Ask anything about your data…"></textarea>
@@ -214,21 +225,39 @@ function followups(text,findings){
   if(findings&&findings.length)out.push('Show me the raw rows');
   return out.slice(0,3);
 }
+function getHist(){let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}h.forEach((e,i)=>{if(!e.id)e.id='h'+i+'-'+(e.t||0);if(e.pinned===undefined)e.pinned=false;});return h;}
+function setHist(h){try{localStorage.setItem('track2-history',JSON.stringify(h.slice(0,30)));}catch(e){}}
 function saveHist(entry){
-  try{const h=JSON.parse(localStorage.getItem('track2-history')||'[]');h.unshift(entry);localStorage.setItem('track2-history',JSON.stringify(h.slice(0,20)));renderHist();}catch(e){}
+  try{const h=getHist();entry.id='h'+Date.now();entry.pinned=false;h.unshift(entry);setHist(h);renderHist();}catch(e){}
 }
 function renderHist(){
-  let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}
+  let h=getHist();
   const f=(document.getElementById('hsearch').value||'').toLowerCase();
-  const list=h.filter(e=>!f||e.q.toLowerCase().includes(f));
-  document.getElementById('hist').innerHTML=list.length?list.map((e,i)=>'<div class=hitem onclick="recallHist('+h.indexOf(e)+')">'+e.q.replace(/</g,'&lt;')+'</div>').join(''):'<div class=hitem>no chats yet</div>';
+  h=h.filter(e=>!f||e.q.toLowerCase().includes(f));
+  h=h.slice().sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+  document.getElementById('hist').innerHTML=h.length?h.map(e=>'<div class=hitem onclick="recallHist(\''+e.id+'\')"><div class=rowline><span class=t>'+e.q.replace(/</g,'&lt;')+'</span></div><div class=rowline><small style="color:#64748b">'+new Date(e.t).toLocaleString()+'</small><span class=hact style="margin-left:auto"><button onclick="event.stopPropagation();pinHist(\''+e.id+'\')" title="'+(e.pinned?'Unpin':'Pin')+'" class="'+(e.pinned?'on':'')+'">Pin</button><button onclick="event.stopPropagation();shareHist(\''+e.id+'\')" title="Copy transcript">Share</button><button onclick="event.stopPropagation();delHist(\''+e.id+'\')" title="Delete">Del</button></span></div></div>').join(''):'<div class=hitem>no chats yet</div>';
 }
-function recallHist(i){
-  let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}
-  const e=h[i];if(!e)return;
+function findHist(id){const h=getHist();let e=h.find(x=>x.id===id);if(!e&&/^\d+$/.test(String(id)))e=h[parseInt(id,10)];return {h:h,e:e};}
+function recallHist(id){
+  const {e}=findHist(id);if(!e)return;
   feed.innerHTML='<div class=u><div class=b><span>'+e.q.replace(/</g,'&lt;')+'</span></div></div>'+e.html;
   document.getElementById('starter').style.display='none';
   document.getElementById('log').scrollTop=1e9;
+}
+function delHist(id){
+  const h=getHist();const e=h.find(x=>x.id===id)||h[parseInt(id,10)];
+  if(!e||!confirm('Delete this chat?'))return;
+  setHist(h.filter(x=>x!==e));renderHist();
+}
+function pinHist(id){
+  const {h,e}=findHist(id);if(!e)return;
+  e.pinned=!e.pinned;setHist(h);renderHist();
+}
+function shareHist(id){
+  const {e}=findHist(id);if(!e)return;
+  const tmp=document.createElement('div');tmp.innerHTML=e.html||'';
+  const txt='Q: '+e.q+'\n\nA:\n'+(tmp.innerText||'').trim();
+  copyText(txt,null);alert('Transcript copied — paste it anywhere to share.');
 }
 function copyTxt(id,btn){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText).then(()=>{const o=btn.innerHTML;btn.innerHTML='✓';setTimeout(()=>btn.innerHTML=o,1200);});}
 function copySQL(id,btn){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText).then(()=>{const o=btn.innerHTML;btn.innerHTML='✓';setTimeout(()=>btn.innerHTML=o,1200);});}
@@ -415,4 +444,8 @@ function editMsg(qid){
 feed.innerHTML='';
 document.getElementById('starter').innerHTML=SUGGEST.map(s=>'<button onclick="send(\''+s.replace(/'/g,"\\'")+'\')">'+s+'</button>').join('');
 renderHist();
+document.getElementById('log').addEventListener('scroll',function(){
+  const atBottom=this.scrollHeight-this.scrollTop-this.clientHeight<200;
+  document.getElementById('jumpLatest').classList.toggle('show',!atBottom);
+});
 </script></body></html>
