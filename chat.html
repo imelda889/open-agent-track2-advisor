@@ -47,7 +47,7 @@ header .t{font-weight:600}header .sub{font-size:12px;color:var(--mut);display:fl
 #hist{flex:1;overflow-y:auto;min-height:0}
 #log::-webkit-scrollbar{width:8px}#log::-webkit-scrollbar-thumb{background:#263244;border-radius:999px}
 .wrap{max-width:900px;margin:0 auto;padding:28px 24px 12px}
-.u{display:flex;justify-content:flex-end;margin:6px 0}
+.u{display:flex;justify-content:flex-start;margin:6px 0}
 .u .b{max-width:80%;background:#2563eb;border-radius:16px;padding:12px 18px;font-size:14px;line-height:1.6;box-shadow:0 10px 35px rgba(37,99,235,.16)}
 .u .edit{font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px;opacity:0}
 .u:hover .edit{opacity:1}
@@ -257,7 +257,7 @@ document.addEventListener('click',()=>{document.querySelectorAll('.hmenu.open').
 function findHist(id){const h=getHist();let e=h.find(x=>x.id===id);if(!e&&/^\d+$/.test(String(id)))e=h[parseInt(id,10)];return {h:h,e:e};}
 function recallHist(id){
   const {e}=findHist(id);if(!e)return;
-  feed.innerHTML='<div class=u><div class=b><span>'+e.q.replace(/</g,'&lt;')+'</span><div style="font-size:10px;color:#93c5fd;opacity:.7;margin-top:4px;text-align:right">'+new Date(e.t).toLocaleString()+'</div></div></div>'+e.html;
+  feed.innerHTML='<div class=u><div class=b><span>'+e.q.replace(/</g,'&lt;')+'</span><div style="font-size:10px;color:#93c5fd;opacity:.7;margin-top:4px;text-align:left">'+new Date(e.t).toLocaleString()+'</div></div></div>'+e.html;
   document.getElementById('starter').style.display='none';
   document.getElementById('log').scrollTop=1e9;
 }
@@ -395,7 +395,7 @@ async function send(preset){
   }
   const t0=Date.now(),qid='q'+t0;
   const plan=planPreview(text);
-  feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')" title="Edit and resend"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span><div style="font-size:10px;color:#93c5fd;opacity:.7;margin-top:4px;text-align:right">'+new Date(t0).toLocaleString()+'</div></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span><details style="margin-top:6px;font-size:12px"><summary style="cursor:pointer;color:#7dd3fd">View plan — '+plan.length+' Zetaris queries</summary>'+plan.map(s=>'<div style="margin:4px 0"><code>'+esc(s)+'</code></div>').join('')+'<div class=meta>+ H-MEM recall, critic review, Nightshift write-up</div></details></div></div>';
+  feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')" title="Edit and resend"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span><div style="font-size:10px;color:#93c5fd;opacity:.7;margin-top:4px;text-align:left">'+new Date(t0).toLocaleString()+'</div></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span><details style="margin-top:6px;font-size:12px"><summary style="cursor:pointer;color:#7dd3fd">View plan — '+plan.length+' Zetaris queries</summary>'+plan.map(s=>'<div style="margin:4px 0"><code>'+esc(s)+'</code></div>').join('')+'<div class=meta>+ H-MEM recall, critic review, Nightshift write-up</div></details></div></div>';
   document.getElementById('log').scrollTop=1e9;
   const phases=['Planning queries','Querying Zetaris sources','Critic reviewing evidence','Writing final answer'];
   const tick=setInterval(()=>{const el=document.getElementById('timer');if(!el){clearInterval(tick);return;}const s=Math.floor((Date.now()-t0)/1000);const ph=phases[Math.min(phases.length-1,Math.floor(s/8))];el.textContent=ph+'… '+s+'s';},500);
