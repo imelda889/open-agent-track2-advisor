@@ -76,7 +76,7 @@ details.fold summary:hover{color:#94a3b8}
 #q{width:100%;background:transparent;border:0;outline:none;color:#fff;font-size:14px;line-height:1.5;padding:10px 12px;resize:none;font-family:inherit}
 .qrow{display:flex;align-items:center;padding:0 4px 4px}
 .qrow .hint{font-size:10px;color:#475569;margin-left:8px}
-#go{margin-left:auto;width:36px;height:36px;border-radius:12px;border:0;background:#2563eb;color:#fff;cursor:pointer;font-size:15px}
+#go{margin-left:auto;width:40px;height:40px;border-radius:12px;border:0;background:#2563eb;color:#fff;cursor:pointer;display:grid;place-items:center}
 #go:hover{background:#3b82f6}#go:disabled{background:#1e293b;color:#475569;cursor:default}
 #go.stop{background:#7f1d1d}
 .spin{display:inline-block;width:15px;height:15px;border:2px solid #334155;border-top-color:#38bdf8;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-3px;margin-right:8px}
@@ -91,12 +91,12 @@ code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-siz
 <div class="meta" style="padding:8px">Zetaris · H-MEM · Nightshift</div>
 </div>
 <div id="main">
-<header><div><div class="t">Tech Stack Advisor <span class="badge">READ-ONLY</span></div><div class="sub"><span class="dot"></span>Connected to Zetaris · <span id="hmodel">Nightshift auto</span></div></div></header>
+<header><div><div class="t">Tech Stack Advisor <span class="badge">READ-ONLY</span></div><div style="font-size:12px;color:#7dd3fc;margin-top:2px">主题：开源框架选型 · 以 React vs Vue 为例，用 GitHub + npm 证据说话</div><div class="sub"><span class="dot"></span>Connected to Zetaris · <span id="hmodel">Nightshift auto</span></div></div></header>
 <div id="log"><div class="wrap" id="feed"></div></div>
 <div id="composer"><div id="schema"></div>
 <div class="chips" id="starter" style="max-width:900px;margin:0 auto 8px"></div>
 <div class="box"><textarea id="q" rows=2 placeholder="Ask anything about your data…"></textarea>
-<div class="qrow"><span class="hint">Enter to send · Shift+Enter newline</span><button id="go" onclick="send()">Send</button></div></div></div>
+<div class="qrow"><span class="hint">Enter to send · Shift+Enter newline</span><button id="go" onclick="send()" aria-label="Send"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg></button></div></div></div>
 </div></div>
 <script>
 const feed=document.getElementById('feed'),q=document.getElementById('q'),go=document.getElementById('go');
@@ -170,7 +170,7 @@ function renderHist(){
   let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}
   const f=(document.getElementById('hsearch').value||'').toLowerCase();
   const list=h.filter(e=>!f||e.q.toLowerCase().includes(f));
-  document.getElementById('hist').innerHTML=list.length?list.map((e,i)=>'<div class=hitem onclick="recallHist('+h.indexOf(e)+')">'>'+e.q.replace(/</g,'&lt;')+'</div>').join(''):'<div class=hitem>no chats yet</div>';
+  document.getElementById('hist').innerHTML=list.length?list.map((e,i)=>'<div class=hitem onclick="recallHist('+h.indexOf(e)+')">'+e.q.replace(/</g,'&lt;')+'</div>').join(''):'<div class=hitem>no chats yet</div>';
 }
 function recallHist(i){
   let h=[];try{h=JSON.parse(localStorage.getItem('track2-history')||'[]')}catch(e){}
@@ -185,7 +185,7 @@ async function fb(traceQ,helpful,btn){
 async function send(preset){
   if(go.dataset.busy==='1'){if(aborter)aborter.abort();return;}
   const text=(preset!==undefined?preset:q.value).trim();if(!text)return;
-  q.value='';go.dataset.busy='1';go.textContent='Stop';go.classList.add('stop');
+  q.value='';go.dataset.busy='1';go.innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';go.classList.add('stop');
   aborter=new AbortController();
   const t0=Date.now(),qid='q'+t0;
   feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')">edit</span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span></div></div>';
@@ -220,7 +220,7 @@ async function send(preset){
     const tmp=document.getElementById('tmp');
     if(tmp)tmp.querySelector('.abody').innerHTML=e.name==='AbortError'?'Stopped by user.':'Error: '+e+' (is the server on :8000 running?)';
   }
-  go.dataset.busy='';go.textContent='Send';go.classList.remove('stop');
+  go.dataset.busy='';go.innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>';go.classList.remove('stop');
   document.getElementById('log').scrollTop=1e9;
 }
 function editMsg(qid){
