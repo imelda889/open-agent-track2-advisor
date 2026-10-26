@@ -91,7 +91,7 @@ code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-siz
 <div class="meta" style="padding:8px">Zetaris · H-MEM · Nightshift</div>
 </div>
 <div id="main">
-<header><div><div class="t">Tech Stack Advisor <span class="badge">READ-ONLY</span></div><div style="font-size:12px;color:#7dd3fc;margin-top:2px">主题：开源框架选型 · 以 React vs Vue 为例，用 GitHub + npm 证据说话</div><div class="sub"><span class="dot"></span>Connected to Zetaris · <span id="hmodel">Nightshift auto</span></div></div></header>
+<header><div><div class="t">Tech Stack Advisor</div><div class="sub"><span class="dot"></span>Connected to Zetaris · <span id="hmodel">Nightshift auto</span></div></div></header>
 <div id="log"><div class="wrap" id="feed"></div></div>
 <div id="composer"><div id="schema"></div>
 <div class="chips" id="starter" style="max-width:900px;margin:0 auto 8px"></div>
@@ -188,7 +188,7 @@ async function send(preset){
   q.value='';go.dataset.busy='1';go.innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';go.classList.add('stop');
   aborter=new AbortController();
   const t0=Date.now(),qid='q'+t0;
-  feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')">edit</span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span></div></div>';
+  feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')" title="Edit and resend"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span></div></div>';
   document.getElementById('log').scrollTop=1e9;
   const tick=setInterval(()=>{const el=document.getElementById('timer');if(el)el.textContent='Thinking… '+Math.floor((Date.now()-t0)/1000)+'s';},500);
   try{
@@ -233,7 +233,7 @@ function editMsg(qid){
     if(e.key==='Escape'){inp.outerHTML='<span class=txt>'+txt.replace(/</g,'&lt;')+'</span>';}
   });
 }
-feed.innerHTML='<div class=chips>'+SUGGEST.map(s=>'<button onclick="send(\''+s.replace(/'/g,"\\'")+'\')">'+s+'</button>').join('')+'</div>';
+feed.innerHTML='';
 document.getElementById('starter').innerHTML=SUGGEST.map(s=>'<button onclick="send(\''+s.replace(/'/g,"\\'")+'\')">'+s+'</button>').join('');
 renderHist();
 </script></body></html>
