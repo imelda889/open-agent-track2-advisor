@@ -2,8 +2,9 @@
 <style>
 :root{--bg:#05070b;--panel:#090c12;--card:#0a0d13;--line:rgba(255,255,255,.08);--fg:#f4f7fb;--mut:#8b98ad;--acc:#38bdf8;--blue:#2563eb}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,ui-sans-serif,system-ui,"Segoe UI",Arial,sans-serif;font-size:15px}
-#app{display:flex;min-height:100vh}
-#side{width:260px;background:var(--panel);border-right:1px solid var(--line);padding:12px;flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+#app{display:flex;height:100vh;overflow:hidden}
+#side{width:260px;background:var(--panel);border-right:1px solid var(--line);padding:12px;flex-shrink:0;display:flex;flex-direction:column;height:100vh;overflow:hidden;transition:margin .25s}
+body.sidehide #side{margin-left:-260px}
 html,body{height:100%;overflow:hidden}
 body.canvas-open #main{margin-right:min(620px,46vw)}
 html,body{height:100%;overflow:hidden}
@@ -20,21 +21,32 @@ html,body{height:100%;overflow:hidden}
 .hitem:hover{background:rgba(255,255,255,.05);color:#e2e8f0}
 .hitem .rowline{display:flex;align-items:center;gap:6px}
 .hitem .t{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hact{display:none;gap:2px}
+.hact{position:relative}
+.hdots{background:transparent;border:0;color:#64748b;font-size:14px;cursor:pointer;padding:2px 6px;border-radius:6px;letter-spacing:1px}
+.hitem:hover .hdots{color:#cbd5e1}
+.hdots:hover{background:rgba(255,255,255,.08)}
+.hmenu{display:none;position:absolute;right:0;top:100%;z-index:20;background:#0b1220;border:1px solid #334155;border-radius:10px;padding:4px;min-width:130px;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.hmenu.open{display:block}
+.hmenu button{display:block;width:100%;text-align:left;background:transparent;border:0;color:#cbd5e1;font-size:12px;padding:8px 10px;border-radius:6px;cursor:pointer}
+.hmenu button:hover{background:rgba(255,255,255,.06)}
+.hmenu button.danger{color:#fca5a5}
+#menuBtn{background:transparent;border:1px solid var(--line);color:#94a3b8;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:14px}
+#menuBtn:hover{color:#fff;border-color:#38bdf8}
 .hitem:hover .hact{display:flex}
 .hact button{background:transparent;border:0;color:#7dd3fd;font-size:10px;cursor:pointer;padding:2px 4px;border-radius:6px}
 .hact button:hover{background:rgba(255,255,255,.08);color:#fff}
 .hact button.on{color:#fbbf24}
 #jumpLatest{position:fixed;right:32px;bottom:150px;display:none;background:#0b1220;border:1px solid #38bdf8;color:#7dd3fd;border-radius:999px;padding:6px 14px;font-size:12px;cursor:pointer;z-index:30}
 #jumpLatest.show{display:block}
-#main{flex:1;min-width:0;display:flex;flex-direction:column;transition:margin-right .25s}
+#main{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;transition:margin-right .25s}
 body.canvas-open #main{margin-right:min(620px,46vw)}
 header{display:flex;align-items:center;gap:10px;height:64px;border-bottom:1px solid var(--line);background:rgba(7,9,14,.8);padding:0 24px}
 header .t{font-weight:600}header .sub{font-size:12px;color:var(--mut);display:flex;align-items:center;gap:6px}
 .dot{width:6px;height:6px;border-radius:50%;background:#34d399;display:inline-block}
 .srcpill{margin-left:auto;font-size:12px;color:#94a3b8;border:1px solid var(--line);border-radius:8px;padding:7px 12px}
 .badge{display:inline-block;font-size:11px;background:#065f46;border-radius:20px;padding:2px 10px;margin-left:8px;vertical-align:middle}
-#log{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#263244 transparent;scroll-behavior:smooth;position:relative}
+#log{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#263244 transparent;scroll-behavior:smooth;position:relative}
+#hist{flex:1;overflow-y:auto;min-height:0}
 #log::-webkit-scrollbar{width:8px}#log::-webkit-scrollbar-thumb{background:#263244;border-radius:999px}
 .wrap{max-width:900px;margin:0 auto;padding:28px 24px 12px}
 .u{display:flex;justify-content:flex-end;margin:6px 0}
@@ -128,7 +140,7 @@ code{background:rgba(255,255,255,.06);padding:1px 6px;border-radius:5px;font-siz
 <div class="meta" style="padding:8px">Zetaris · H-MEM · Nightshift</div>
 </div>
 <div id="main">
-<header><div><div class="t">Tech Stack Advisor</div><div class="sub"><span class="dot"></span>Connected to Zetaris · <span id="hmodel">Nightshift auto</span></div></div></header>
+<header><button id="menuBtn" onclick="document.body.classList.toggle('sidehide')" title="Toggle sidebar">☰</button><div><div class="t">Tech Stack Advisor</div><div class="sub"><span class="dot"></span>Connected to Zetaris · <span id="hmodel">Nightshift auto</span></div></div></header>
 <div id="log"><div class="wrap" id="feed"></div></div>
 <button id="jumpLatest" onclick="document.getElementById('log').scrollTo({top:1e9,behavior:'smooth'})">↓ latest</button>
 <div id="composer"><div id="schema"></div>
@@ -235,8 +247,15 @@ function renderHist(){
   const f=(document.getElementById('hsearch').value||'').toLowerCase();
   h=h.filter(e=>!f||e.q.toLowerCase().includes(f));
   h=h.slice().sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
-  document.getElementById('hist').innerHTML=h.length?h.map(e=>'<div class=hitem onclick="recallHist(\''+e.id+'\')"><div class=rowline><span class=t>'+e.q.replace(/</g,'&lt;')+'</span></div><div class=rowline><small style="color:#64748b">'+new Date(e.t).toLocaleString()+'</small><span class=hact style="margin-left:auto"><button onclick="event.stopPropagation();pinHist(\''+e.id+'\')" title="'+(e.pinned?'Unpin':'Pin')+'" class="'+(e.pinned?'on':'')+'">Pin</button><button onclick="event.stopPropagation();shareHist(\''+e.id+'\')" title="Copy transcript">Share</button><button onclick="event.stopPropagation();delHist(\''+e.id+'\')" title="Delete">Del</button></span></div></div>').join(''):'<div class=hitem>no chats yet</div>';
+  document.getElementById('hist').innerHTML=h.length?h.map(e=>'<div class=hitem onclick="recallHist(\''+e.id+'\')"><div class=rowline><span class=t>'+e.q.replace(/</g,'&lt;')+'</span>'+(e.pinned?'<span style="font-size:10px;color:#fbbf24">PINNED</span>':'')+'<span class=hact style="margin-left:auto"><button class=hdots onclick="event.stopPropagation();toggleMenu(\''+e.id+'\',this)" title="More">···</button><span class=hmenu id=menu-'+e.id+'><button onclick="event.stopPropagation();pinHist(\''+e.id+'\')">'+(e.pinned?'Unpin':'Pin to top')+'</button><button onclick="event.stopPropagation();shareHist(\''+e.id+'\')">Share transcript</button><button class=danger onclick="event.stopPropagation();delHist(\''+e.id+'\')">Delete</button></span></span></div><div class=rowline><small style="color:#64748b">'+new Date(e.t).toLocaleString()+'</small></div></div>').join(''):'<div class=hitem>no chats yet</div>';
 }
+function toggleMenu(id,btn){
+  const m=document.getElementById('menu-'+id);
+  const was=m&&m.classList.contains('open');
+  document.querySelectorAll('.hmenu.open').forEach(x=>x.classList.remove('open'));
+  if(m&&!was)m.classList.add('open');
+}
+document.addEventListener('click',()=>{document.querySelectorAll('.hmenu.open').forEach(x=>x.classList.remove('open'));});
 function findHist(id){const h=getHist();let e=h.find(x=>x.id===id);if(!e&&/^\d+$/.test(String(id)))e=h[parseInt(id,10)];return {h:h,e:e};}
 function recallHist(id){
   const {e}=findHist(id);if(!e)return;
