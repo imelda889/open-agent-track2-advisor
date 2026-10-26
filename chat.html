@@ -107,7 +107,7 @@ const SUGGEST=['Should we adopt React or Vue for a new web project?','Which Poke
 let aborter=null;
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
 function md(t){
-  t=String(t).replace(/<think>[\s\S]*?<\/think>/g,'');
+  t=String(t).replace(/<\/?think>/g,'').replace(/<think>[\s\S]*?<\/think>/g,'');
   t=t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const lines=t.split('\n');let out='',inth=false;
   const inline=s=>s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>');
@@ -190,8 +190,10 @@ async function send(preset){
   const t0=Date.now(),qid='q'+t0;
   feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')" title="Edit and resend"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span></div></div>';
   document.getElementById('log').scrollTop=1e9;
-  const tick=setInterval(()=>{const el=document.getElementById('timer');if(el)el.textContent='Thinking… '+Math.floor((Date.now()-t0)/1000)+'s';},500);
+  const phases=['Planning queries','Querying Zetaris sources','Critic reviewing evidence','Writing final answer'];
+  const tick=setInterval(()=>{const el=document.getElementById('timer');if(!el){clearInterval(tick);return;}const s=Math.floor((Date.now()-t0)/1000);const ph=phases[Math.min(phases.length-1,Math.floor(s/8))];el.textContent=ph+'… '+s+'s';},500);
   try{
+    document.getElementById('starter').style.display='none';
     const r=await fetch('http://localhost:8000/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:'chat-'+t0,user_query:text}),signal:aborter.signal});
     const d=await r.json();
     clearInterval(tick);
@@ -211,7 +213,7 @@ async function send(preset){
       '<button onclick="send(\''+text.replace(/'/g,"\\'")+'\')" title="Regenerate">Retry</button>'+
       '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',true,this)" title="Good answer">Good</button>'+
       '<button onclick="fb(\''+text.replace(/'/g,"\\'")+'\',false,this)" title="Bad answer">Bad</button>'+
-      '<span class=stat>Thought for '+secs+'s · '+(d.agents_used||[]).join(' → ')+' · '+d.log_path+'</span></div>'+
+      '<span class=stat><details style="display:inline"><summary style="display:inline;cursor:pointer;color:#94a3b8">Thought for '+secs+'s</summary><span> · '+(d.agents_used||[]).join(' → ')+' · '+d.log_path+'</span></details></span></div>'+
       '<div class=chips>'+fups+'</div></div></div>';
     saveHist({q:text,t:t0,html:document.getElementById(aid).outerHTML});
     try{document.getElementById('hmodel').textContent=d.ai_provider?d.ai_provider.model.split('/').pop():'auto';}catch(e){}
