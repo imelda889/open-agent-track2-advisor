@@ -275,6 +275,18 @@ function svgChart(f,aid,fi,cid){
   const modes='<button class="ctab'+(st.mode==='bar'?' on':'')+'" onclick="setCMode(\''+cid+'\',\'bar\')">Bar</button><button class="ctab'+(st.mode==='line'?' on':'')+'" onclick="setCMode(\''+cid+'\',\'line\')">Line</button>';
   return '<div style="margin-bottom:8px">'+modes+'</div><div style="margin-bottom:8px">'+leg+'</div><svg width="100%" viewBox="0 0 '+W+' '+H+'" style="max-width:620px">'+g+body+'</svg>';
 }
+function planPreview(text){
+  const q=text.toLowerCase();
+  if(q.includes('react')||q.includes('vue')||q.includes('framework')||q.includes('library')||q.includes('adopt')||q.includes('npm')||q.includes('github')||q.includes('star')||q.includes('download')||(q.includes('which')&&q.includes('use')))
+    return ['SELECT * FROM advisor.all_repo_health_table','SELECT * FROM advisor.all_downloads_table'];
+  if(q.includes('pokemon')||q.includes('pikachu')||q.includes('charizard')||q.includes('stat')||q.includes('type'))
+    return ['SELECT pokemon_name, stat_name, base_stat FROM pokeapi.all_pokemon_stats_table ORDER BY base_stat DESC LIMIT 5','SELECT * FROM pokeapi.all_pokemon_types_table ORDER BY pokemon_name, slot'];
+  if(q.includes('taxi')||q.includes('trip')||q.includes('demand'))
+    return ['SELECT * FROM NY_TAXI.taxi_zones LIMIT 5','SELECT COUNT(*) AS n FROM NY_TAXI.trips'];
+  if(q.includes('sale')||q.includes('store')||q.includes('retail'))
+    return ['SELECT * FROM TPCDS_DB.date_dim LIMIT 5','SELECT COUNT(*) AS n FROM TPCDS_DB.store_sales'];
+  return ['SELECT 1'];
+}
 function tglSeries(cid,i){const cx=CHSRC[cid];if(!cx)return;const key=cx.aid+'_'+cx.fi;const st=CHSTATE[key];if(!st)return;const at=st.hidden.indexOf(i);if(at>=0)st.hidden.splice(at,1);else st.hidden.push(i);refreshChart(cid);}
 function setCMode(cid,m){const cx=CHSRC[cid];if(!cx)return;const key=cx.aid+'_'+cx.fi;const st=CHSTATE[key]||(CHSTATE[key]={hidden:[],mode:'bar'});st.mode=m;refreshChart(cid);}
 function refreshChart(cid){
@@ -333,7 +345,8 @@ async function send(preset){
     }
   }
   const t0=Date.now(),qid='q'+t0;
-  feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')" title="Edit and resend"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span></div></div>';
+  const plan=planPreview(text);
+  feed.innerHTML+='<div class=u><div class=b><span style="font-size:11px;color:#93c5fd;cursor:pointer;margin-right:8px" onclick="editMsg(\''+qid+'\')" title="Edit and resend"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></span><span class=txt id='+qid+'-t>'+text.replace(/</g,'&lt;')+'</span></div></div><div class=arow id=tmp><div class=aico>AI</div><div class=abody><span class=spin></span><span id=timer>Thinking… 0s</span><details style="margin-top:6px;font-size:12px"><summary style="cursor:pointer;color:#7dd3fd">View plan — '+plan.length+' Zetaris queries</summary>'+plan.map(s=>'<div style="margin:4px 0"><code>'+esc(s)+'</code></div>').join('')+'<div class=meta>+ H-MEM recall, critic review, Nightshift write-up</div></details></div></div>';
   document.getElementById('log').scrollTop=1e9;
   const phases=['Planning queries','Querying Zetaris sources','Critic reviewing evidence','Writing final answer'];
   const tick=setInterval(()=>{const el=document.getElementById('timer');if(!el){clearInterval(tick);return;}const s=Math.floor((Date.now()-t0)/1000);const ph=phases[Math.min(phases.length-1,Math.floor(s/8))];el.textContent=ph+'… '+s+'s';},500);
