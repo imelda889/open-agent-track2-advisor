@@ -51,10 +51,12 @@ details.sql summary:hover{color:#cbd5e1}
 .sqlbox{margin-top:8px;border:1px solid var(--line);border-radius:12px;background:#0000004d;padding:12px 14px;font-family:Consolas,monospace;font-size:12px;line-height:1.7;color:#7dd3fc;white-space:pre-wrap}
 .sqlbox button{margin-top:8px;font-size:11px;background:none;border:1px solid var(--line);color:#94a3b8;border-radius:8px;padding:4px 12px;cursor:pointer}
 .sqlbox button:hover{color:#fff;border-color:#38bdf8}
-.actrow{display:flex;align-items:center;gap:2px;margin-top:10px;color:#475569}
-.actrow button{background:none;border:0;color:#475569;border-radius:8px;padding:7px;cursor:pointer;font-size:13px}
-.actrow button:hover{background:rgba(255,255,255,.05);color:#fff}
+.actrow{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
+.actrow button{background:#0b1220;border:1px solid #334155;color:#cbd5e1;border-radius:999px;padding:5px 14px;cursor:pointer;font-size:12px}
+.actrow button:hover{border-color:#38bdf8;color:#fff}
 .actrow .stat{margin-left:8px;font-size:11px}
+.mini-b{font-size:11px;background:#0b1220;color:#cbd5e1;border:1px solid #334155;border-radius:999px;padding:3px 12px;cursor:pointer;margin-left:8px}
+.mini-b:hover{border-color:#38bdf8;color:#fff}
 .bar-row{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:13px}
 .bar-lbl{width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#cbd5e1}
 .bar-outer{flex:1;background:#0b1220;border-radius:6px;height:14px}
@@ -200,9 +202,9 @@ async function send(preset){
     document.getElementById('tmp').remove();
     const secs=((d.elapsed_ms||(Date.now()-t0))/1000).toFixed(1);
     const aid='a'+t0;
-    const ev=(d.result.findings||[]).map((f,i)=>'<div class=card><div class=cardhead>'+esc(f.sources[0])+' <span class=n>'+f.rows_seen+' rows · '+(f.query_ms||0)+'ms · '+(f.live?'live':'sample')+'</span><button onclick="dlCSV(\'evidence-'+t0+'-'+i+'.csv\',\''+toCSV([f]).replace(/'/g,"\\'").replace(/\n/g,'\\n')+'\')">Export CSV</button></div>'+renderTable(f.sample_rows,f.columns)+'</div>').join('');
+    const ev=(d.result.findings||[]).map((f,i)=>'<div class=card><div class=cardhead>'+esc(f.sources[0])+' <span class=n>'+f.rows_seen+' rows · '+(f.query_ms||0)+'ms · '+(f.live?'live':'sample')+'</span><button class=mini-b onclick="dlCSV(\'evidence-'+t0+'-'+i+'.csv\',\''+toCSV([f]).replace(/'/g,"\\'").replace(/\n/g,'\\n')+'\')">Export CSV</button></div>'+renderTable(f.sample_rows,f.columns)+'</div>').join('');
     const bars=(d.result.findings||[]).map(f=>renderBars(f.sample_rows||[])).join('');
-    const sqls=(d.result.findings||[]).map((f,i)=>'<details class=sql><summary>View generated SQL — '+esc(f.sources[0])+' ('+(f.query_ms||0)+'ms) <button style="font-size:11px" onclick="event.preventDefault();copySQL(\''+aid+'-sql'+i+'\',this)">copy</button></summary><div class=sqlbox id='+aid+'-sql'+i+'>'+esc(f.sql)+'</div></details>').join('');
+    const sqls=(d.result.findings||[]).map((f,i)=>'<details class=sql><summary>View generated SQL — '+esc(f.sources[0])+' ('+(f.query_ms||0)+'ms) <button class=mini-b onclick="event.preventDefault();copySQL(\''+aid+'-sql'+i+'\',this)">copy</button></summary><div class=sqlbox id='+aid+'-sql'+i+'>'+esc(f.sql)+'</div></details>').join('');
     const fups=followups(text,d.result.findings).map(f=>'<button onclick="send(\''+f.replace(/'/g,"\\'")+'\')">'+f.replace(/</g,'&lt;')+'</button>').join('');
     const modelLine=d.ai_provider?d.ai_provider.mode+' / '+d.ai_provider.model:'n/a';
     feed.innerHTML+='<div class=arow id='+aid+'><div class=aico>AI</div><div class=abody>'+
