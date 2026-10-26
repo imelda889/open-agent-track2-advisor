@@ -1,6 +1,6 @@
 {
     "request_id":  "example-001",
-    "trace_id":  "trace-example-001-1792934732714",
+    "trace_id":  "trace-example-001-1792980766117",
     "status":  "success",
     "agents_used":  [
                         "ResearchPlanner",
@@ -10,23 +10,72 @@
                         "ReportWriter"
                     ],
     "result":  {
-                   "summary":  "Investigated \"We are starting a new web project. Should we adopt React or Vue? Compare community health, maintenance activity and adoption with evidence.\" across 2 Zetaris sources (2 live). Connected findings below; each claim cites its source query.\n\nFinal recommendation (nightshift, model nvidia/nemotron-3.5-lightning-30b-a3b):\n**Comparison based on provided evidence:**\n\n- **Community health** (`advisor.all_repo_health_table`):  \n  React has more stars (251,788 vs 212,629), more forks (51,566 vs 33,616), and more open issues (1,491 vs 642) than Vue. Higher stars/forks suggest a larger contributing base, while the issue counts differ but do not directly indicate health without resolution context.\n\n- **Maintenance activity** (`advisor.all_repo_health_table`):  \n  React\u0027s last update timestamp is 2026-10-25T11:04:57Z; Vue\u0027s is 2024-10-10T07:24:15Z. By these timestamps, React shows more recent commit activity.\n\n- **Adoption** (`advisor.all_downloads_table`):  \n  React npm downloads: 123,680,288 vs Vue\u0027s 11,038,721. React\u0027s download volume is roughly 11x higher, indicating significantly broader current usage.\n\n**What the evidence does not cover:**  \n- Issue resolution velocity or closedâissue ratio  \n- Contributor count or commit frequency beyond the single lastâupdate timestamp  \n- Release cycles, versioning strategy, or longâterm support policies  \n- Ecosystem size (number of complementary libraries, UI component collections, etc.)  \n- Typeâsystem maturity beyond the noted language difference (React: JavaScript, Vue: TypeScript)  \n- Learning curve, performance characteristics, or domainâspecific fit for your project  \n\nIf you need deeper signals (e.g., contributor activity, release cadence, or ecosystem metrics), those lie outside the current tables and would require additional data sources.",
+                   "summary":  "Investigated \"We are starting a new web project. Should we adopt React or Vue? Compare community health, maintenance activity and adoption with evidence.\" across 2 Zetaris sources (2 live). Connected findings below; each claim cites its source query.\n\nFinal recommendation (nightshift, model nvidia/nemotron-3-ultra-550b-a55b):\nThe user is asking for a recommendation between React and Vue for a new web project, based on the provided evidence. I need to answer ONLY from the evidence, citing the source tables, and note what\u0027s missing.\n\nLet me analyze the evidence:\n\nFrom advisor.all_repo_health_table:\n- react/react: 251,850 stars, 51,573 forks, 1,494 open issues, last update 2026-10-25T11:04:57Z, primary language JavaScript, MIT License\n- vuejs/vue: 212,632 stars, 33,615 forks, 643 open issues, last update 2024-10-10T07:24:15Z, primary language TypeScript, MIT License\n\nFrom advisor.all_downloads_table:\n- react: 123,680,288 downloads\n- vue: 11,038,721 downloads\n\nI need to present these facts, cite sources, and note what\u0027s missing for a project-adoption decision. I should NOT make a recommendation since the evidence is insufficient. I\u0027ll present the facts and note the gaps.\n\nThis is the same question as the prior vetted answers, so I should follow the same structure but write a fresh answer (not copy verbatim).\u003c/think\u003e**Community health** (from `advisor.all_repo_health_table`)\n\n| Metric | React (react/react) | Vue (vuejs/vue) |\n|--------|---------------------|-----------------|\n| Stars | 251,850 | 212,632 |\n| Forks | 51,573 | 33,615 |\n| Open issues | 1,494 | 643 |\n| Primary language | JavaScript | TypeScript |\n| License | MIT License | MIT License |\n\nReact shows higher star and fork counts, indicating a larger visible community. Vue has fewer open issues, but raw issue counts alone donât reveal resolution speed or quality.\n\n**Maintenance activity** (from `advisor.all_repo_health_table`)\n\n- React last update: **2026-10-25T11:04:57Z**  \n- Vue last update: **2024-10-10T07:24:15Z**  \n\nReactâs timestamp is more recent, suggesting more recent commit activity in this snapshot.\n\n**Adoption** (from `advisor.all_downloads_table`)\n\n| Package | Total npm downloads |\n|---------|---------------------|\n| react   | 123,680,288 |\n| vue     | 11,038,721 |\n\nReactâs download volume is roughly **11Ã higher**, indicating substantially broader current usage.\n\n**Evidence gaps** (both tables)  \nThe data does **not** include:\n- Issue closure rates or resolution quality  \n- Contributor commit frequency beyond the lastâupdate timestamp  \n- Release cadence or longâterm support (LTS) policies  \n- Ecosystem size (plugins, component libraries, tooling integrations)  \n- TypeScript depth beyond the noted primary languages  \n- Learning curve, documentation quality, or migration complexity  \n- Performance characteristics (bundle size, runtime speed, SSR/SSG capabilities)  \n- Team expertise, existing codebase compatibility, or projectâspecific requirements  \n\n**Bottom line**  \nBased solely on the supplied snapshots, React leads on community visibility (stars, forks), recent maintenance signal, and download adoption. Vue shows a smaller openâissue count and a TypeScriptâfirst codebase. However, the missing signals above are critical for a projectâfit decisionâthis evidence alone is insufficient to recommend one over the other for your specific project.",
                    "findings":  [
                                     {
-                                        "claim":  "Query `SELECT * FROM advisor.all_repo_health_table` returned 2 rows (live Zetaris).",
+                                        "claim":  "Query `SELECT * FROM advisor.all_repo_health_table` returned 2 rows in 8306ms (live Zetaris).",
                                         "sources":  [
                                                         "advisor.all_repo_health_table",
                                                         "zetaris:live"
                                                     ],
-                                        "rows_seen":  2
+                                        "rows_seen":  2,
+                                        "sql":  "SELECT * FROM advisor.all_repo_health_table",
+                                        "live":  true,
+                                        "query_ms":  8306,
+                                        "columns":  [
+                                                        "repo",
+                                                        "stars",
+                                                        "forks",
+                                                        "open_issues",
+                                                        "last_push",
+                                                        "language",
+                                                        "license_name"
+                                                    ],
+                                        "sample_rows":  [
+                                                            [
+                                                                "react/react",
+                                                                "251850",
+                                                                "51573",
+                                                                "1494",
+                                                                "2026-10-25T11:04:57Z",
+                                                                "JavaScript",
+                                                                "MIT License"
+                                                            ],
+                                                            [
+                                                                "vuejs/vue",
+                                                                "212632",
+                                                                "33615",
+                                                                "643",
+                                                                "2024-10-10T07:24:15Z",
+                                                                "TypeScript",
+                                                                "MIT License"
+                                                            ]
+                                                        ]
                                     },
                                     {
-                                        "claim":  "Query `SELECT * FROM advisor.all_downloads_table` returned 2 rows (live Zetaris).",
+                                        "claim":  "Query `SELECT * FROM advisor.all_downloads_table` returned 2 rows in 2780ms (live Zetaris).",
                                         "sources":  [
                                                         "advisor.all_downloads_table",
                                                         "zetaris:live"
                                                     ],
-                                        "rows_seen":  2
+                                        "rows_seen":  2,
+                                        "sql":  "SELECT * FROM advisor.all_downloads_table",
+                                        "live":  true,
+                                        "query_ms":  2780,
+                                        "columns":  [
+                                                        "package",
+                                                        "weekly_downloads"
+                                                    ],
+                                        "sample_rows":  [
+                                                            [
+                                                                "react",
+                                                                "123680288"
+                                                            ],
+                                                            [
+                                                                "vue",
+                                                                "11038721"
+                                                            ]
+                                                        ]
                                     }
                                 ],
                    "confidence":  0.64
@@ -40,10 +89,10 @@
                       },
     "ai_provider":  {
                         "mode":  "nightshift",
-                        "model":  "nvidia/nemotron-3.5-lightning-30b-a3b"
+                        "model":  "nvidia/nemotron-3-ultra-550b-a55b"
                     },
     "zetaris_live":  true,
     "memory_engine":  "Meterless H-MEM (vendor/hmem)",
-    "log_path":  "logs/trace-example-001-1792934732714.jsonl",
-    "elapsed_ms":  73986
+    "log_path":  "logs/trace-example-001-1792980766117.jsonl",
+    "elapsed_ms":  52019
 }

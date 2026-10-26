@@ -47,16 +47,19 @@ function sampleRecords(sql: string): ZetarisRow[] {
   ];
 }
 
-export async function runSql(sql: string, limit = 50): Promise<{ rows: ZetarisRow[]; live: boolean }> {
+export async function runSql(sql: string, limit = 50): Promise<{ rows: unknown[]; live: boolean; columns: string[] }> {
   const clean = sql.trim().replace(/;$/, "");
   if (!clean) throw new Error("SQL must not be empty.");
-  if (env("SAMPLE_MODE") === "true") return { rows: sampleRecords(clean), live: false };
+  const sample = (rows: ZetarisRow[]): { rows: unknown[]; live: boolean; columns: string[] } => ({
+    rows, live: false, columns: Object.keys(rows[0] ?? {}),
+  });
+  if (env("SAMPLE_MODE") === "true") return sample(sampleRecords(clean));
 
   const base = (env("ZETARIS_BASE_URL") ?? "http://localhost:3000").replace(/\/$/, "");
   const orgId = env("ZETARIS_ORG_ID");
   if (!orgId || !/^[0-9]+$/.test(orgId)) {
     // No org configured -> explicit sample fallback instead of fake live call.
-    return { rows: sampleRecords(clean), live: false };
+    return sample(sampleRecords(clean));
   }
   let token = env("ZETARIS_API_KEY");
   if (!token) token = await loginToken(base);
@@ -80,13 +83,26 @@ export async function runSql(sql: string, limit = 50): Promise<{ rows: ZetarisRo
     throw new Error(`Zetaris query failed: HTTP ${res.status} ${detail.slice(0, 300)}`);
   }
   const data = (await res.json()) as unknown;
-  // Proxy returns rows in various shapes; normalize without inventing data.
-  if (Array.isArray(data)) return { rows: data as ZetarisRow[], live: true };
+  // Proxy returns {headers, data}; rows are usually arrays but some
+  // tables come back as space-joined strings -- split those to match
+  // the header count, otherwise keep the raw value (never invent data).
+  const norm = (rows: unknown[], columns: string[]): unknown[] =>
+    rows.map((r) => {
+      if (typeof r !== "string") return r;
+      const parts = r.split(/\s+/);
+      return parts.length === columns.length ? parts : [r];
+    });
   if (data && typeof data === "object") {
     const d = data as Record<string, unknown>;
+    const headers = Array.isArray(d.headers) ? (d.headers as string[]) : [];
     for (const k of ["data", "rows", "result", "records"]) {
-      if (Array.isArray(d[k])) return { rows: d[k] as ZetarisRow[], live: true };
+      if (Array.isArray(d[k])) {
+        const rows = d[k] as unknown[];
+        return { rows: norm(rows, headers), live: true, columns: headers };
+      }
     }
+    if (Array.isArray(data)) return { rows: norm(data as unknown[], headers), live: true, columns: headers };
   }
-  return { rows: [], live: true };
+  if (Array.isArray(data)) return { rows: norm(data as unknown[], []), live: true, columns: [] };
+  return { rows: [], live: true, columns: [] };
 }

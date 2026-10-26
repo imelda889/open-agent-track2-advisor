@@ -4,77 +4,89 @@
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--fg:#e2e8f0;--muted:#94a3b8;--acc:#38bdf8;--ok:#065f46}
 *{box-sizing:border-box}body{margin:0;background:#020617;color:var(--fg);font-family:"Segoe UI",Arial,sans-serif}
-.slide{display:none;min-height:100vh;padding:48px 64px;max-width:1100px;margin:0 auto}
-.slide.on{display:block}.k{color:var(--acc);letter-spacing:3px;font-size:13px;font-weight:700}
-h1{font-size:44px;margin:12px 0}h2{font-size:32px;margin:8px 0 16px}p,li{font-size:19px;line-height:1.55}
+/* 居中关键：slide.on 用 flex 垂直居中，解决下面大片留白 */
+.slide{display:none;min-height:100vh;padding:32px 56px;max-width:1100px;margin:0 auto;flex-direction:column;justify-content:center}
+.slide.on{display:flex}
+.slide.center{align-items:center;text-align:center}
+.k{color:var(--acc);letter-spacing:3px;font-size:13px;font-weight:700}
+h1{font-size:52px;margin:12px 0}h2{font-size:30px;margin:8px 0 14px}p,li{font-size:18px;line-height:1.55}
 .mut{color:var(--muted)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .box{background:var(--card);border-radius:12px;padding:16px 20px}
 .pill{display:inline-block;background:var(--ok);border-radius:20px;padding:3px 14px;font-size:14px;margin:4px 6px 4px 0}
-table{border-collapse:collapse;width:100%;font-size:17px}th,td{border:1px solid #334155;padding:8px 12px;text-align:left}
-th{background:#0b1220}.flow{font-size:19px;background:var(--card);border-radius:12px;padding:18px;line-height:2}
-.flow b{color:var(--acc)}.notes{display:none;margin-top:28px;border-left:4px solid var(--acc);padding:10px 16px;background:#0b1220;font-size:16px;color:var(--muted)}
+table{border-collapse:collapse;width:100%;font-size:16px}th,td{border:1px solid #334155;padding:7px 11px;text-align:left}
+th{background:#0b1220}
+.flow{font-size:18px;background:var(--card);border-radius:12px;padding:18px;line-height:2}
+.flow b{color:var(--acc)}.notes{display:none;margin-top:20px;border-left:4px solid var(--acc);padding:10px 16px;background:#0b1220;font-size:15px;color:var(--muted)}
 body.shownotes .notes{display:block}
 .nav{position:fixed;bottom:14px;right:18px;color:var(--muted);font-size:13px}
-code{background:#020617;padding:2px 8px;border-radius:6px;font-size:16px}
+code{background:#020617;padding:2px 8px;border-radius:6px;font-size:15px}
+/* 截图占位：你存图进去就自动显示 */
+.img-ph{border:2px dashed #334155;border-radius:12px;padding:28px 16px;text-align:center;color:var(--muted);font-size:15px;background:#0b1220}
+.img-ph img{max-width:100%;border-radius:8px;display:block;margin:0 auto}
+.arch{display:flex;align-items:stretch;gap:0;margin:16px 0;flex-wrap:nowrap;overflow-x:auto}
+.anode{background:#0b1220;border:1px solid #38bdf8;border-radius:10px;padding:10px 12px;font-size:14px;min-width:135px;text-align:center;flex-shrink:0}
+.anode small{display:block;color:var(--muted);font-size:12px;margin-top:4px}
+.anode.mem{border-color:#34d399}.anode.data{border-color:#f59e0b}.anode.llm{border-color:#a78bfa}
+.aarrow{align-self:center;color:#38bdf8;font-size:20px;padding:0 6px;flex-shrink:0}
+.aloop{text-align:center;color:#f59e0b;font-size:13px;margin-top:6px}
 </style></head><body>
 
-<div class="slide on"><div class="k">OPEN AGENT HACKATHON 2026 · TRACK 2</div>
+<!-- 1/6 COVER：已居中 -->
+<div class="slide on center"><div class="k">OPEN AGENT HACKATHON 2026 · TRACK 2</div>
 <h1>Tech Stack Advisor</h1>
 <p>Evidence-backed framework recommendations.<br><span class="mut">Should we adopt React or Vue? Answered with live data, not opinions.</span></p>
 <p><span class="pill">Zetaris: live</span><span class="pill">Meterless H-MEM + Nightshift</span><span class="pill">NVIDIA Nemotron</span></p>
 <div class="notes">SPEAKER: 15 seconds. Name, track, one-liner. The question every tech lead asks, answered by an agent with citations.</div></div>
 
-<div class="slide"><div class="k">1 · PROBLEM &amp; USERS</div><h2>Choosing a framework is high-stakes guesswork</h2>
-<ul><li>Tech leads pick libraries on blog posts and vibes — a wrong bet costs months of rewrites.</li><li>Signals exist (stars, maintenance, downloads, CVEs) but live in 3+ places, go stale fast.</li><li><b>Users:</b> tech leads, startup CTOs, hackathon builders deciding tonight's stack.</li></ul>
-<div class="notes">SPEAKER: 20s. Real problem, real user. Impact 30 lives here: a decision-maker with a deadline, not a toy demo.</div></div>
+<!-- 2/6 PROBLEM + SOLUTION 合并：原来1+2挤一页，省一页留白 -->
+<div class="slide"><div class="k">1 · PROBLEM → SOLUTION</div><h2>High-stakes guesswork → answer with receipts</h2>
+<div class="grid">
+<div class="box"><b>Problem</b><ul><li>Tech leads pick libs on blogs &amp; vibes — wrong bet = months rewrite.</li><li>Signals (stars, downloads, CVEs) live in 3+ places, go stale.</li><li>Users: tech leads, CTOs deciding tonight.</li></ul></div>
+<div class="box"><b>Solution</b><br><code>POST /run {"user_query": "React or Vue?"}</code><p>→ ~6s → verdict + per-claim sources + confidence + what evidence does <i>not</i> cover.</p><p class="mut">Real run: React 251K★ / 123M dl vs Vue 212K★ / 11M — both tables cited.</p></div>
+</div>
+<div class="notes">SPEAKER: 30s. 左边痛点右边解法，对着数字念，真跑出来的不是mock。</div></div>
 
-<div class="slide"><div class="k">2 · SOLUTION</div><h2>Ask in English. Get an answer with receipts.</h2>
-<div class="box"><code>POST /run {"user_query": "Should we adopt React or Vue?"}</code>
-<p>→ 6 seconds → verdict + per-claim sources + confidence + what the evidence does <i>not</i> cover.</p></div>
-<p class="mut">Real run: React 251K★ / 116M weekly downloads vs Vue 212K★ / 10M — verdict cites both tables.</p>
-<div class="notes">SPEAKER: 25s. This is the demo slide — say the numbers out loud, they are from a real run, not mockups.</div></div>
+<!-- 3/6 ARCHITECTURE：你说的flowey diagram，对的，必须加，评委就看这个loop -->
+<div class="slide"><div class="k">2 · AGENT ARCHITECTURE</div><h2>Planner ↔ Executor ↔ Evaluator, with memory</h2>
+<div class="arch">
+<div class="anode">User Query<small>React or Vue?</small></div><div class="aarrow">→</div>
+<div class="anode">Research<br>Planner<small>split to SQL</small></div><div class="aarrow">→</div>
+<div class="anode data">Retriever<small>Zetaris live<br>+ H-MEM recall</small></div><div class="aarrow">→</div>
+<div class="anode">Summarizer<small>connect findings</small></div><div class="aarrow">→</div>
+<div class="anode">Critic<small>claim check</small></div><div class="aarrow">→</div>
+<div class="anode llm">ReportWriter<small>Nightshift / Nemotron</small></div>
+</div>
+<div class="aloop">↺ Critic rejects → revision (logged in trace) → H-MEM mines result for next run &nbsp;·&nbsp; every handoff → JSONL trace</div>
+<div class="notes">SPEAKER: 30s. 重点讲这个loop：critic证据不足会打回revision，和普通pipeline的区别。指着图从左念到右。</div></div>
 
-<div class="slide"><div class="k">3 · AGENT ARCHITECTURE</div><h2>Planner ↔ Executor ↔ Evaluator, with memory</h2>
-<div class="flow"><b>ResearchPlanner</b> breaks the question into Zetaris queries<br>
-→ <b>Retriever</b> pulls live rows via Zetaris + recalls H-MEM<br>
-→ <b>EvidenceSummarizer</b> connects findings across sources<br>
-→ <b>InsightCritic</b> checks every claim is supported — <b>requests revision</b> if not<br>
-→ <b>ReportWriter</b> (Nightshift) writes the cited recommendation.<br>
-Every handoff → JSONL trace. H-MEM mines each run so the next one starts smarter.</div>
-<div class="notes">SPEAKER: 30s. Stress the loop: critic rejected a draft in our logs when evidence was thin — that is the difference from a pipeline.</div></div>
+<!-- 4/6 ZETARIS + METERLESS 合并：原来5+6挤一页 -->
+<div class="slide"><div class="k">3 · HOW IT WORKS — UNIQUE</div><h2>Two live sources, zero ETL + memory that compounds</h2>
+<div class="grid">
+<div class="box"><b>Zetaris</b><ul><li><code>advisor.all_repo_health_table</code> — stars/forks/issues (~4s)</li><li><code>advisor.all_downloads_table</code> — npm weekly (~2s)</li><li>Unique: header-auth REST + flatten views; 加第3个框架改2行。</li></ul></div>
+<div class="box"><b>Meterless</b><ul><li>H-MEM: 每次Zetaris结果mine入库，下次recall (<code>Recalled N</code>)。</li><li>Nightshift: <code>meterless/auto</code> → Nemotron 3.5 Lightning 30B，mode+model进trace。</li><li>Critic的revision也进memory。</li></ul></div>
+</div>
+<div class="notes">SPEAKER: 30s. 左数据右记忆+模型，一句话：evidence → memory → recommendation是一个闭环。</div></div>
 
-<div class="slide"><div class="k">4 · TECH STACK</div><h2>Small, boring, reproducible</h2>
-<table><tr><th>Layer</th><th>Choice</th></tr>
-<tr><td>Agent runtime</td><td>Node + tsx, single <code>server.ts</code> (<code>POST /run</code>, <code>GET /health</code>)</td></tr>
-<tr><td>Data layer</td><td>Zetaris (local Docker): <code>advisor.*</code> REST views</td></tr>
-<tr><td>Memory</td><td>Meterless H-MEM reference (vendored, 10/10 smoke tests)</td></tr>
-<tr><td>AI provider</td><td>Meterless Nightshift → <code>meterless/auto</code> → NVIDIA Nemotron 3.5 Lightning 30B</td></tr>
-<tr><td>Repro</td><td><code>npm install → npm run setup → npx tsx server.ts</code></td></tr></table>
-<div class="notes">SPEAKER: 20s. Judges love boring-and-runnable. Point at the 3-command repro.</div></div>
+<!-- 5/6 STACK + VISUALS 合并：表格压缩 + 3个真截图位 -->
+<div class="slide"><div class="k">4 · STACK + PROOF</div><h2>Small, boring, reproducible — see it</h2>
+<div class="grid">
+<div><table><tr><th>Layer</th><th>Choice</th></tr>
+<tr><td>Runtime</td><td>Node + tsx, <code>server.ts</code> <code>POST /run</code></td></tr>
+<tr><td>Data</td><td>Zetaris Docker: <code>advisor.*</code></td></tr>
+<tr><td>Memory/AI</td><td>H-MEM + Nightshift → Nemotron</td></tr>
+<tr><td>Repro</td><td><code>npm i → setup → npx tsx server.ts</code></td></tr></table></div>
+<div>
+<div class="img-ph">① 存 <code>images/demo-chat.png</code>：chat.html 问答+chart截图<br><span style="font-size:12px">浏览器打开 chat.html，问 React or Vue，截 verdict 卡</span></div>
+<div class="img-ph" style="margin-top:10px">② 存 <code>images/zetaris-query.png</code>：Zetaris SQL跑通截图 + ③ <code>images/nightshift-provider.png</code> Providers页 NVIDIA stored<br><span style="font-size:12px">没有这3张就别放stock图，宁可空着</span></div>
+</div>
+</div>
+<div class="notes">SPEAKER: 25s. 指着表念3命令可复现，指着截图说全是真artifact。如果还没截图，先空着讲viewer.html + trace。</div></div>
 
-<div class="slide"><div class="k">5 · ZETARIS — HOW &amp; WHAT'S UNIQUE</div><h2>Two live REST sources, zero ETL</h2>
-<ul><li><code>advisor.all_repo_health_table</code> — GitHub: stars, forks, open issues, last push, license (~4s).</li>
-<li><code>advisor.all_downloads_table</code> — npm weekly downloads (~2s).</li>
-<li>Unique: custom REST registration with headers + nested-struct flattening views; union views make a 3rd framework a 2-line change.</li>
-<li>S3 sample DBs wired with LIMIT + honest <code>sample</code> fallback (never faked as live).</li></ul>
-<div class="notes">SPEAKER: 25s. Unique = union-view pattern + header auth + honest fallback. Mention the recipe files in getting-started.</div></div>
-
-<div class="slide"><div class="k">6 · METERLESS — HOW &amp; WHAT'S UNIQUE</div><h2>Memory that compounds + provider that routes</h2>
-<ul><li><b>H-MEM in a working feature:</b> every Zetaris result is mined into memory; next runs recall it (trace shows <code>Recalled N memories</code>). Sleep/ledger/audit all live in the notebook CLI.</li>
-<li><b>Nightshift as primary provider:</b> ReportWriter calls <code>meterless/auto</code>; router raced 2 models, picked Nemotron; <code>ai_provider.mode+model</code> logged per request.</li>
-<li>Unique: evidence → memory → recommendation is one loop; the critic's revision requests also land in memory.</li></ul>
-<div class="notes">SPEAKER: 25s. Two engines one story: memory makes retrieval better, Nightshift makes the final answer. Both visible in traces.</div></div>
-
-<div class="slide"><div class="k">7 · PRODUCT VISUALS</div><h2>What the judges see</h2>
-<div class="grid"><div class="box">📺 Demo video (1–4 min): Zetaris UI → <code>POST /run</code> (6s) → viewer.html verdict → trace excerpt.</div>
-<div class="box">🖥️ <code>viewer.html</code>: summary, per-source findings, confidence, model, revision count.</div></div>
-<p class="mut">Screenshots: viewer verdict card + trace log + Nightshift Providers (NVIDIA stored).</p>
-<div class="notes">SPEAKER: 15s. Show don't tell — screenshots of the actual artifacts, no mockups.</div></div>
-
-<div class="slide"><div class="k">8 · FUTURE WORK</div><h2>Where this goes next</h2>
-<ul><li>Third source: OSV vulnerabilities (needs POST — extend adapter) + vuejs/core (active repo) alongside vuejs/vue.</li><li>Markovian loop for multi-framework shootouts; Scout Intent to route question types.</li><li>Nightshift local lanes when VRAM allows; NVIDIA rerank for evidence ranking.</li></ul>
-<p class="mut">Thank you — repo, traces, and this deck are all reproducible from a clean clone.</p>
-<div class="notes">SPEAKER: 15s. End on honest limits + next steps. Total ~3 min with the video.</div></div>
+<!-- 6/6 FUTURE 居中收尾 -->
+<div class="slide center"><div class="k">5 · FUTURE</div><h2>Where this goes next — thank you</h2>
+<p class="mut">OSV vulnerabilities (needs POST adapter) + vuejs/core · Markovian shootouts · local lanes + rerank</p>
+<p><span class="mut">Repo, traces (<code>logs/*.jsonl</code>), and this deck reproduce from clean clone.</span></p>
+<div class="notes">SPEAKER: 15s. 诚实说limit + next，总时长~3min。按 N 显示备注讲。</div></div>
 
 <div class="nav">← → navigate · N notes · <span id="n"></span></div>
 <script>let i=0;const s=[...document.querySelectorAll('.slide')];

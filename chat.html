@@ -151,11 +151,17 @@ function md(t){
   if(inth)out+='</table>';
   return out.replace(/((<liitem>.*<\/liitem>)+)/g,'<ul>$1</ul>').replace(/<\/?liitem>/g,m=>m.startsWith('</')?'</li>':'<li>');
 }
+function normRow(r,cols){
+  if(typeof r==='string'){const p=r.split(/\s+/);if(cols&&cols.length&&p.length===cols.length)return p;return [r];}
+  if(Array.isArray(r)||(r&&typeof r==='object'))return r;
+  return [r];
+}
 function renderTable(rows,columns){
   if(!rows||!rows.length)return '<div class=meta>no rows</div>';
   let cols,body;
-  if(Array.isArray(rows[0])){cols=(columns&&columns.length===rows[0].length)?columns:rows[0].map((_,i)=>'c'+i);body=rows.map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('');}
-  else{cols=Object.keys(rows[0]);body=rows.map(r=>'<tr>'+cols.map(c=>'<td>'+esc(r[c])+'</td>').join('')+'</tr>').join('');}
+  const nrows=rows.map(r=>normRow(r,columns));
+  if(Array.isArray(nrows[0])){cols=(columns&&columns.length===nrows[0].length)?columns:nrows[0].map((_,i)=>'c'+i);body=nrows.map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('');}
+  else{cols=Object.keys(nrows[0]);body=nrows.map(r=>'<tr>'+cols.map(c=>'<td>'+esc(r[c])+'</td>').join('')+'</tr>').join('');}
   return '<div class=tscroll><table class=dt><tr>'+cols.map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr>'+body+'</table></div>';
 }
 function renderBars(rows){
@@ -226,7 +232,8 @@ async function fb(traceQ,helpful,btn){
 const RCACHE={};const CHSTATE={};const SORTST={};const CHSRC={};let CCUR=null;
 function copyText(t,btn){try{navigator.clipboard.writeText(t).then(()=>{if(!btn)return;const o=btn.innerHTML;btn.innerHTML='✓';setTimeout(()=>btn.innerHTML=o,1200);});}catch(e){}}
 function seriesOf(f){
-  const rows=(f.sample_rows||[]).map(r=>Array.isArray(r)?r:Object.values(r));
+  const cols0=f.columns||[];
+  const rows=(f.sample_rows||[]).map(r=>{r=normRow(r,cols0.length?cols0:null);return Array.isArray(r)?r:Object.values(r);});
   if(!rows.length)return null;
   const cols=(f.columns&&f.columns.length===rows[0].length)?f.columns:rows[0].map((_,i)=>'c'+i);
   let li=-1;
@@ -354,8 +361,9 @@ async function send(preset){
     document.getElementById('starter').style.display='none';
     const r=await fetch('http://localhost:8000/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({request_id:'chat-'+t0,user_query:text}),signal:aborter.signal});
     const d=await r.json();
+    if(!r.ok||!d.result)throw new Error((d&&(d.message||d.error))||('Server error HTTP '+r.status));
     clearInterval(tick);
-    document.getElementById('tmp').remove();
+    const tmp0=document.getElementById('tmp');if(tmp0)tmp0.remove();
     const secs=((d.elapsed_ms||(Date.now()-t0))/1000).toFixed(1);
     const aid='a'+t0;
     const findings=d.result.findings||[];
@@ -390,8 +398,10 @@ async function send(preset){
     try{document.getElementById('hmodel').textContent=d.ai_provider?d.ai_provider.model.split('/').pop():'auto';}catch(e){}
   }catch(e){
     clearInterval(tick);
+    const msg=e.name==='AbortError'?'Stopped by user.':('Error: '+((e&&e.message)||e)+' — is the server on :8000 running?');
     const tmp=document.getElementById('tmp');
-    if(tmp)tmp.querySelector('.abody').innerHTML=e.name==='AbortError'?'Stopped by user.':'Error: '+e+' (is the server on :8000 running?)';
+    if(tmp)tmp.querySelector('.abody').innerHTML=msg;
+    else feed.innerHTML+='<div class=arow><div class=abody><div class=ameta>Error</div><div>'+esc(String(msg))+'</div></div></div>';
   }
   go.dataset.busy='';go.innerHTML='<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>';go.classList.remove('stop');
   document.getElementById('log').scrollTop=1e9;
