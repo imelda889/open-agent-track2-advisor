@@ -84,6 +84,15 @@ code{background:#020617;padding:2px 8px;border-radius:6px;font-size:15px}
 <p><span class="mut">Repo, traces (<code>logs/*.jsonl</code>), and this deck reproduce from clean clone.</span></p>
 <div class="notes">SPEAKER: 15s. State limits honestly, then next steps. Total about 3 minutes. Press N for notes.</div></div>
 
+<!-- APPENDIX · Q&A (backup only, not presented) -->
+<div class="slide"><div class="k">APPENDIX · Q&A</div><h2>If asked</h2>
+<div class="grid">
+<div class="box"><b>Zetaris down?</b><p>SAMPLE_MODE runs the full loop on labeled samples. A total miss returns an explicit failure with Retry — we say nothing rather than invent numbers.</p></div>
+<div class="box"><b>Why not a chain?</b><p>Work flows backwards: the Critic vetoed downloads evidence in a logged run and forced a second pass. <code>revision_count</code> proves it.</p></div>
+<div class="box"><b>What did NVIDIA do?</b><p>Every reasoning call runs on Nemotron through Nightshift; each trace row names the exact model.</p></div>
+<div class="box"><b>Who is this for?</b><p>Tech leads deciding tonight: numbers, sources, confidence, and gaps.</p></div>
+</div></div>
+
 <div class="nav">← → navigate · N notes · <span id="n"></span></div>
 <script>let i=0;const s=[...document.querySelectorAll('.slide')];
 function go(n){i=(n+s.length)%s.length;s.forEach((e,k)=>e.classList.toggle('on',k===i));document.getElementById('n').textContent=(i+1)+'/'+s.length}
