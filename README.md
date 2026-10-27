@@ -3,6 +3,13 @@
 questions across multiple data sources, connect findings, and produce
 evidence-backed answers.
 
+## Team
+
+- Chong Xin Yi ([@imelda889](https://github.com/imelda889)) — agent
+  orchestration, Zetaris integration (primary contact)
+- Tan Yoke Ling ([@S4kAY](https://github.com/S4kAY)) — demo video and
+  presentation
+
 Evidence-backed framework recommendation over Zetaris data with Meterless
 H-MEM memory. Planner -> Retriever -> EvidenceSummarizer -> InsightCritic
 (+1 revision loop) -> ReportWriter, JSONL traces in `logs/`.
