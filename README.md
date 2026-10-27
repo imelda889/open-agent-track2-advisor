@@ -1,4 +1,7 @@
 # Track 2: Tech Stack Advisor (my-agent)
+**Track:** The Agent That Can Explain Why — agents that investigate complex
+questions across multiple data sources, connect findings, and produce
+evidence-backed answers.
 
 Evidence-backed framework recommendation over Zetaris data with Meterless
 H-MEM memory. Planner -> Retriever -> EvidenceSummarizer -> InsightCritic
@@ -41,14 +44,41 @@ Env (see `.env.example`, never commit `.env`):
   Nightshift app is installed the agent uses an evidence-grounded
   retrieval fallback, honestly labeled — install Nightshift for the
   model-written recommendation.
-- Cursor: built and refined in Cursor; heavy generation assisted, final edits/runs in Cursor.
+- Built with AI coding assistants (OpenCode); heavy generation assisted, final edits/runs reviewed by the team.
 - NVIDIA: no GPU workload in this evidence-QA path yet.
 
 ## Limits
 
-- S3-backed table scans are slow on a 2-core laptop (300s timeout, then sample
-  fallback labeled in output). REST-backed sources answer in seconds.
-- Retrieval-only answer mode by default (no model key needed).
+- S3-backed table scans are slow on a 2-core laptop (60s per-query timeout,
+  then labeled `zetaris:sample` fallback for S3-family tables). REST-backed
+  sources answer in seconds.
+- Retrieval-only answer mode by default (no model key needed); install
+  Nightshift for model-written recommendations.
+- Findings show correlation from retrieved rows, not proven causation.
+
+## Demo Video
+
+Demo video (1–4 min): [upload to HackOS and paste link here]
+
+## Failure handling
+
+| Failure | Behaviour |
+|---|---|
+| Zetaris source timeout (60s) | S3-family tables fall back to labeled sample rows; other tables report 0 rows honestly, no wrong-domain data |
+| Empty result (0 rows everywhere) | Structured failure message + Retry instead of a fabricated answer |
+| Unsupported claim | InsightCritic blocks it and requests one revision (see `revision_count`) |
+| Malformed input | `400` with a validation message (`user_query is required`) |
+| Nightshift unreachable | Retrieval-only evidence answer, honestly labeled |
+
+## Pre-existing components (declared)
+
+- `agentathon-starter` scaffold (Meterless template: `notebook.ts`, `seed/`,
+  H-MEM reference vendored via `npm run setup` into gitignored `vendor/`).
+  All agent logic (`src/agents.ts`, `src/zetaris.ts`), `server.ts`, `chat.html`,
+  `slides.html` and this README's Track 2 sections were built 22–27 Oct 2026.
+- Open-source libraries per `package.json` / `vendor/hmem` (H-MEM reference,
+  MIT). Flowey (MIT) was used only to render the architecture diagram for
+  the slide deck, not in the submitted agent.
 
 ---
 # Agentathon Starter (upstream docs below)

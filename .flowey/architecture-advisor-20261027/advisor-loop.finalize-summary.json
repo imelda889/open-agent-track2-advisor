@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Desktop\\Documents\\Default Project\\my-agent\\.flowey\\architecture-advisor-20261027\\candidate.json",
+    "sha256": "2647d4b9ada8c65a358de281a02b3482c5df999f03a680f1d0d04916ab00fb73",
+    "bytes": 3569
+  },
+  "artifact": {
+    "path": "C:\\Desktop\\Documents\\Default Project\\my-agent\\.flowey\\architecture-advisor-20261027\\advisor-loop.html",
+    "sha256": "b40925c983b039d1b7d5fc2ef0b18f240a97f2337a28f93e162b83c41cbf9424",
+    "bytes": 792200
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Desktop\\Documents\\Default Project\\my-agent\\.flowey\\architecture-advisor-20261027\\advisor-loop.finalize.json",
+    "summaryReceipt": "C:\\Desktop\\Documents\\Default Project\\my-agent\\.flowey\\architecture-advisor-20261027\\advisor-loop.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Desktop\\Documents\\Default Project\\my-agent\\.flowey\\architecture-advisor-20261027\\advisor-loop.browser-check.json"
+  },
+  "update": {
+    "status": "unavailable",
+    "installedVersion": null,
+    "availableVersion": null,
+    "releaseNotes": null,
+    "checkedAt": null,
+    "source": null,
+    "noticeRequired": false,
+    "noticeText": null,
+    "reason": "cache-valid"
+  },
+  "visualReview": "not-requested",
+  "durationMs": 3610
+}

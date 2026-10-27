@@ -6,6 +6,15 @@ import { getMemory } from "./src/meterless.ts";
 
 const PORT = Number(process.env.PORT ?? 8000);
 
+const progress = new Map<string, { phase: string; detail: string; updated: number }>();
+function setProgress(id: string, phase: string, detail: string): void {
+  progress.set(id, { phase, detail, updated: Date.now() });
+  if (progress.size > 200) {
+    const first = progress.keys().next().value;
+    if (first) progress.delete(first);
+  }
+}
+
 function send(res: http.ServerResponse, code: number, obj: unknown): void {
   res.writeHead(code, {
     "Content-Type": "application/json",
@@ -23,6 +32,12 @@ const server = http.createServer((req, res) => {
   }
   if (req.method === "GET" && req.url === "/health") {
     send(res, 200, { ok: true });
+    return;
+  }
+  if (req.method === "GET" && (req.url === "/progress" || req.url?.startsWith("/progress?"))) {
+    const u = new URL(req.url, "http://localhost");
+    const id = u.searchParams.get("request_id") ?? "";
+    send(res, 200, progress.get(id) ?? { phase: "unknown", detail: "", updated: 0 });
     return;
   }
   if (req.method === "POST" && (req.url === "/feedback" || req.url?.startsWith("/feedback?"))) {
@@ -59,8 +74,10 @@ const server = http.createServer((req, res) => {
           return;
         }
         const started = Date.now();
+        setProgress(requestId, "planning", "Planning Zetaris queries");
         try {
-          const r = await runTrack2(userQuery, requestId);
+          const r = await runTrack2(userQuery, requestId, (phase, detail) => setProgress(requestId, phase, detail));
+          setProgress(requestId, "done", "Completed");
           send(res, 200, {
             request_id: requestId,
             trace_id: r.trace_id,
@@ -75,6 +92,7 @@ const server = http.createServer((req, res) => {
             elapsed_ms: Date.now() - started,
           });
         } catch (err) {
+          setProgress(requestId, "error", (err as Error).message.slice(0, 200));
           send(res, 500, {
             request_id: requestId, status: "error",
             type: "error", code: "agent_failed",

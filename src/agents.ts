@@ -1,7 +1,7 @@
 // Track 2 agents: ResearchPlanner -> Retriever -> EvidenceSummarizer -> InsightCritic -> ReportWriter.
 // Feedback loop: Critic can request one revision; Executor reruns with critique applied.
 import { randomUUID } from "node:crypto";
-import { runSql } from "./zetaris.ts";
+import { runSql, sampleFallback } from "./zetaris.ts";
 import { getMemory } from "./meterless.ts";
 import { answer as llmAnswer } from "./llm.ts";
 import { trace } from "./tracing.ts";
@@ -42,14 +42,14 @@ function planSubQuestions(query: string): string[] {
   const q = query.toLowerCase();
   if (q.includes("react") || q.includes("vue") || q.includes("framework") || q.includes("library") || q.includes("adopt") || q.includes("which") && q.includes("use")) {
     return [
-      "SELECT * FROM advisor.all_repo_health_table",
-      "SELECT * FROM advisor.all_downloads_table",
+      "SELECT * FROM advisor.all_repo_health_table LIMIT 20",
+      "SELECT * FROM advisor.all_downloads_table LIMIT 20",
     ];
   }
   if (q.includes("pokemon") || q.includes("pikachu") || q.includes("charizard") || q.includes("stat") || q.includes("type")) {
     return [
       "SELECT pokemon_name, stat_name, base_stat FROM pokeapi.all_pokemon_stats_table ORDER BY base_stat DESC LIMIT 5",
-      "SELECT * FROM pokeapi.all_pokemon_types_table ORDER BY pokemon_name, slot",
+      "SELECT * FROM pokeapi.all_pokemon_types_table ORDER BY pokemon_name, slot LIMIT 20",
     ];
   }
   if (q.includes("taxi") || q.includes("trip") || q.includes("demand")) {
@@ -109,13 +109,14 @@ function critiqueDraft(question: string, draft: Draft): Critique {
   return { requires_revision: issues.length > 0, evaluator_findings: issues };
 }
 
-export async function runTrack2(userQuery: string, requestId: string): Promise<RunResult> {
+export async function runTrack2(userQuery: string, requestId: string, onProgress?: (phase: string, detail: string) => void): Promise<RunResult> {
   const traceId = `trace-${requestId}-${Date.now()}`;
   const agents = ["ResearchPlanner", "Retriever", "EvidenceSummarizer", "InsightCritic", "ReportWriter"];
   let revisionCount = 0;
 
   // Planner
   const subSql = planSubQuestions(userQuery);
+  onProgress?.("planning", `Planned ${subSql.length} Zetaris queries`);
   trace(traceId, {
     agent_name: "ResearchPlanner", action: "create_plan",
     input_summary: userQuery.slice(0, 200),
@@ -126,6 +127,7 @@ export async function runTrack2(userQuery: string, requestId: string): Promise<R
   // Retriever: H-MEM recall + Zetaris
   const { hmem, source } = await getMemory();
   const memResult = hmem.query(userQuery, { threshold: 0.1 });
+  onProgress?.("recall", `Recalled ${(memResult.memories ?? []).length} H-MEM memories`);
   trace(traceId, {
     agent_name: "Retriever", action: "recall_hmem",
     input_summary: `H-MEM query (${source})`,
@@ -138,9 +140,11 @@ export async function runTrack2(userQuery: string, requestId: string): Promise<R
   for (const sql of subSql) {
     try {
       const t0 = Date.now();
+      onProgress?.("querying", sql);
       const { rows, live, columns } = await runSql(sql, 20);
       const ms = Date.now() - t0;
       if (live) liveCount++;
+      onProgress?.("querying", `${sql} → ${rows.length} rows (${live ? "live" : "sample"})`);
       evidence.push({ sql, rows, live, ms, columns });
       // Mine evidence into H-MEM so second runs remember (Meterless role).
       await hmem.mine("tool_result", `${sql} -> ${rows.length} rows`);
@@ -151,13 +155,19 @@ export async function runTrack2(userQuery: string, requestId: string): Promise<R
         target_agent: "EvidenceSummarizer", confidence: live ? 0.9 : 0.5, retry_count: 0, status: "success",
       });
     } catch (err) {
+      // S3-family tables fall back to labeled sample rows (matches vetted
+      // example_2/3 + README); other tables report 0 rows honestly instead
+      // of showing wrong-domain sample data.
+      const tbl = tableOf(sql);
+      const fb = /^(NY_TAXI|TPCDS_DB)\./i.test(tbl) ? sampleFallback(sql) : [];
+      const fbCols = fb.length ? Object.keys((fb[0] as Record<string, unknown>) ?? {}) : [];
       trace(traceId, {
         agent_name: "Retriever", action: "query_zetaris",
         input_summary: sql,
-        output_summary: `Error: ${(err as Error).message.slice(0, 200)}`,
-        target_agent: "EvidenceSummarizer", confidence: 0.2, retry_count: 1, status: "error",
+        output_summary: fb.length ? `Sample fallback ${fb.length} rows` : `Error: ${(err as Error).message.slice(0, 200)}`,
+        target_agent: "EvidenceSummarizer", confidence: fb.length ? 0.5 : 0.2, retry_count: 1, status: "error",
       });
-      evidence.push({ sql, rows: [], live: false, ms: 0, columns: [] });
+      evidence.push({ sql, rows: fb, live: false, ms: 0, columns: fbCols });
     }
   }
 
@@ -172,6 +182,7 @@ export async function runTrack2(userQuery: string, requestId: string): Promise<R
 
   // Critic + one revision loop
   let critique = critiqueDraft(userQuery, draft);
+  onProgress?.("critic", critique.requires_revision ? "Revision requested" : "Approved");
   trace(traceId, {
     agent_name: "InsightCritic", action: "review",
     input_summary: `Draft with ${draft.findings.length} findings`,
@@ -205,21 +216,30 @@ export async function runTrack2(userQuery: string, requestId: string): Promise<R
     .join("\n");
   const memText = `H-MEM recall: ${(memResult.memories ?? []).length} memories`;
   const final = await llmAnswer(userQuery, memText, [], evidenceText);
+  onProgress?.("writing", `ReportWriter: ${final.mode}`);
   // Retrieval-only fallback is evidence-aware: synthesize from live Zetaris
   // rows generically (no hardcoded teams/values) so the answer is useful
   // even before Nightshift is installed. Nightshift path returns as-is.
   let finalText = final.text;
   if (final.mode !== "nightshift") {
-    const parts = evidence.map((e) => {
-      const rows = e.rows as unknown[];
-      const preview =
-        rows.length > 0 ? ` e.g. ${JSON.stringify(rows[0]).slice(0, 300)}` : "";
-      return `- ${tableOf(e.sql)} (${e.live ? "live" : "sample"}): ${rows.length} rows.${preview}`;
-    });
-    finalText =
-      `Evidence-backed answer from Zetaris (${liveCount}/${evidence.length} sources live):\n` +
-      parts.join("\n") +
-      `\nConfidence ${draft.confidence}. (Full reasoning in findings + trace; install Nightshift for a model-written recommendation.)`;
+    const totalRows = evidence.reduce((n, e) => n + (e.rows as unknown[]).length, 0);
+    if (totalRows === 0) {
+      finalText =
+        `Zetaris query failed — no rows returned from any source (${liveCount}/${evidence.length} sources live). ` +
+        `The queries likely timed out or the tables were unreachable. ` +
+        `Please press Retry to run again. (Full reasoning in findings + trace.)`;
+    } else {
+      const parts = evidence.map((e) => {
+        const rows = e.rows as unknown[];
+        const preview =
+          rows.length > 0 ? ` e.g. ${JSON.stringify(rows[0]).slice(0, 300)}` : "";
+        return `- ${tableOf(e.sql)} (${e.live ? "live" : "sample"}): ${rows.length} rows.${preview}`;
+      });
+      finalText =
+        `Evidence-backed answer from Zetaris (${liveCount}/${evidence.length} sources live):\n` +
+        parts.join("\n") +
+        `\nConfidence ${draft.confidence}. (Full reasoning in findings + trace; install Nightshift for a model-written recommendation.)`;
+    }
   }
   trace(traceId, {
     agent_name: "ReportWriter", action: "final_answer",

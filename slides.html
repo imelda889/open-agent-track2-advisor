@@ -49,12 +49,7 @@ code{background:#020617;padding:2px 8px;border-radius:6px;font-size:15px}
 <!-- 3/6 ARCHITECTURE：你说的flowey diagram，对的，必须加，评委就看这个loop -->
 <div class="slide"><div class="k">2 · AGENT ARCHITECTURE</div><h2>Planner ↔ Executor ↔ Evaluator, with memory</h2>
 <div class="arch">
-<div class="anode">User Query<small>React or Vue?</small></div><div class="aarrow">→</div>
-<div class="anode">Research<br>Planner<small>split to SQL</small></div><div class="aarrow">→</div>
-<div class="anode data">Retriever<small>Zetaris live<br>+ H-MEM recall</small></div><div class="aarrow">→</div>
-<div class="anode">Summarizer<small>connect findings</small></div><div class="aarrow">→</div>
-<div class="anode">Critic<small>claim check</small></div><div class="aarrow">→</div>
-<div class="anode llm">ReportWriter<small>Nightshift / Nemotron</small></div>
+<iframe src=".flowey/architecture-advisor-20261027/advisor-loop.html?present=1" style="width:100%;height:560px;border:1px solid #38bdf8;border-radius:10px;background:#0b1220" title="Agent loop diagram"></iframe>
 </div>
 <div class="aloop">↺ Critic rejects → revision (logged in trace) → H-MEM mines result for next run &nbsp;·&nbsp; every handoff → JSONL trace</div>
 <div class="notes">SPEAKER: 30s. 重点讲这个loop：critic证据不足会打回revision，和普通pipeline的区别。指着图从左念到右。</div></div>
@@ -76,8 +71,9 @@ code{background:#020617;padding:2px 8px;border-radius:6px;font-size:15px}
 <tr><td>Memory/AI</td><td>H-MEM + Nightshift → Nemotron</td></tr>
 <tr><td>Repro</td><td><code>npm i → setup → npx tsx server.ts</code></td></tr></table></div>
 <div>
-<div class="img-ph">① 存 <code>images/demo-chat.png</code>：chat.html 问答+chart截图<br><span style="font-size:12px">浏览器打开 chat.html，问 React or Vue，截 verdict 卡</span></div>
-<div class="img-ph" style="margin-top:10px">② 存 <code>images/zetaris-query.png</code>：Zetaris SQL跑通截图 + ③ <code>images/nightshift-provider.png</code> Providers页 NVIDIA stored<br><span style="font-size:12px">没有这3张就别放stock图，宁可空着</span></div>
+<div class="img-ph">① demo chat（真跑图）<img src="images/demo-chat-done.png" alt="Completed answer: 1/2 live evidence"><img src="images/demo-chat-running.png" alt="Live progress while running" style="margin-top:10px"></div>
+<div class="img-ph" style="margin-top:10px">② Zetaris SQL 跑通（2 行 live）<img src="images/zetaris-query.png" alt="Zetaris SQL Workspace: repo_health 2 rows Success"></div>
+<div class="img-ph" style="margin-top:10px">③ Nightshift Providers：NVIDIA stored<img src="images/nightshift-provider.png" alt="Nightshift Providers: NVIDIA stored in daemon"></div>
 </div>
 </div>
 <div class="notes">SPEAKER: 25s. 指着表念3命令可复现，指着截图说全是真artifact。如果还没截图，先空着讲viewer.html + trace。</div></div>

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "f3debc67-723c-4153-8158-71958015f4a8",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Desktop\\Documents\\Default Project\\my-agent\\.flowey\\architecture-advisor-20261027\\candidate.json",
+  "output": "C:\\Desktop\\Documents\\Default Project\\my-agent\\.flowey\\architecture-advisor-20261027\\advisor-loop.html",
+  "specification": {
+    "sha256": "2647d4b9ada8c65a358de281a02b3482c5df999f03a680f1d0d04916ab00fb73",
+    "bytes": 3569
+  },
+  "artifact": {
+    "sha256": "b40925c983b039d1b7d5fc2ef0b18f240a97f2337a28f93e162b83c41cbf9424",
+    "bytes": 792200
+  }
+}

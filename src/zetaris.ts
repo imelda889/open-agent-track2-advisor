@@ -47,6 +47,10 @@ function sampleRecords(sql: string): ZetarisRow[] {
   ];
 }
 
+export function sampleFallback(sql: string): ZetarisRow[] {
+  return sampleRecords(sql);
+}
+
 export async function runSql(sql: string, limit = 50): Promise<{ rows: unknown[]; live: boolean; columns: string[] }> {
   const clean = sql.trim().replace(/;$/, "");
   if (!clean) throw new Error("SQL must not be empty.");
@@ -76,7 +80,7 @@ export async function runSql(sql: string, limit = 50): Promise<{ rows: unknown[]
       "Content-Type": "application/json",
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(300000),
+    signal: AbortSignal.timeout(60000),
   });
   if (!res.ok) {
     const detail = await res.text().catch(() => "");

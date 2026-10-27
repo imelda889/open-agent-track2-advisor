@@ -1,0 +1,1 @@
+{"timestamp":"2026-10-26T07:13:48.474Z","trace_id":"trace-chat-1792998828418-1792998828463","agent_name":"ResearchPlanner","action":"create_plan","input_summary":"Should we adopt React or Vue for a new web project?","output_summary":"Planned 2 Zetaris queries","target_agent":"Retriever","confidence":0.9,"retry_count":0,"status":"success"}
