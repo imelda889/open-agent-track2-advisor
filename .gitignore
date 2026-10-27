@@ -8,6 +8,7 @@ proxy-token
 node_modules/
 vendor/
 .notebook/
+.flowey/
 
 # OS / editor
 .DS_Store
