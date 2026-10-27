@@ -44,7 +44,7 @@ code{background:#020617;padding:2px 8px;border-radius:6px;font-size:15px}
 <div class="box"><b>Problem</b><ul><li>Tech leads pick libs on blogs &amp; vibes — wrong bet = months rewrite.</li><li>Signals (stars, downloads, CVEs) live in 3+ places, go stale.</li><li>Users: tech leads, CTOs deciding tonight.</li></ul></div>
 <div class="box"><b>Solution</b><br><code>POST /run {"user_query": "React or Vue?"}</code><p>→ ~6s → verdict + per-claim sources + confidence + what evidence does <i>not</i> cover.</p><p class="mut">Real run: React 251K★ / 123M dl vs Vue 212K★ / 11M — both tables cited.</p></div>
 </div>
-<div class="notes">SPEAKER: 30s. 左边痛点右边解法，对着数字念，真跑出来的不是mock。</div></div>
+<div class="notes">SPEAKER: 30s. Pain left, solution right. Read the numbers — from a real run, not mock.</div></div>
 
 <!-- 3/6 ARCHITECTURE：你说的flowey diagram，对的，必须加，评委就看这个loop -->
 <div class="slide"><div class="k">2 · AGENT ARCHITECTURE</div><h2>Planner ↔ Executor ↔ Evaluator, with memory</h2>
@@ -52,15 +52,15 @@ code{background:#020617;padding:2px 8px;border-radius:6px;font-size:15px}
 <iframe src=".flowey/architecture-advisor-20261027/advisor-loop.html?present=1" style="width:100%;height:560px;border:1px solid #38bdf8;border-radius:10px;background:#0b1220" title="Agent loop diagram"></iframe>
 </div>
 <div class="aloop">↺ Critic rejects → revision (logged in trace) → H-MEM mines result for next run &nbsp;·&nbsp; every handoff → JSONL trace</div>
-<div class="notes">SPEAKER: 30s. 重点讲这个loop：critic证据不足会打回revision，和普通pipeline的区别。指着图从左念到右。</div></div>
+<div class="notes">SPEAKER: 30s. The loop is the point: the Critic sends weak evidence back for revision — that is what makes this not a pipeline. Walk left to right.</div></div>
 
 <!-- 4/6 ZETARIS + METERLESS 合并：原来5+6挤一页 -->
 <div class="slide"><div class="k">3 · HOW IT WORKS — UNIQUE</div><h2>Two live sources, zero ETL + memory that compounds</h2>
 <div class="grid">
-<div class="box"><b>Zetaris</b><ul><li><code>advisor.all_repo_health_table</code> — stars/forks/issues (~4s)</li><li><code>advisor.all_downloads_table</code> — npm weekly (~2s)</li><li>Unique: header-auth REST + flatten views; 加第3个框架改2行。</li></ul></div>
+<div class="box"><b>Zetaris</b><ul><li><code>advisor.all_repo_health_table</code> — stars/forks/issues (~4s)</li><li><code>advisor.all_downloads_table</code> — npm weekly (~2s)</li><li>Unique: header-auth REST + flatten views; a 3rd framework is 2 lines.</li></ul></div>
 <div class="box"><b>Meterless</b><ul><li>H-MEM: 每次Zetaris结果mine入库，下次recall (<code>Recalled N</code>)。</li><li>Nightshift: <code>meterless/auto</code> → Nemotron 3.5 Lightning 30B，mode+model进trace。</li><li>Critic的revision也进memory。</li></ul></div>
 </div>
-<div class="notes">SPEAKER: 30s. 左数据右记忆+模型，一句话：evidence → memory → recommendation是一个闭环。</div></div>
+<div class="notes">SPEAKER: 30s. Data left, memory plus model right. One line: evidence to memory to recommendation is a closed loop.</div></div>
 
 <!-- 5/6 STACK + VISUALS 合并：表格压缩 + 3个真截图位 -->
 <div class="slide"><div class="k">4 · STACK + PROOF</div><h2>Small, boring, reproducible — see it</h2>
@@ -71,18 +71,18 @@ code{background:#020617;padding:2px 8px;border-radius:6px;font-size:15px}
 <tr><td>Memory/AI</td><td>H-MEM + Nightshift → Nemotron</td></tr>
 <tr><td>Repro</td><td><code>npm i → setup → npx tsx server.ts</code></td></tr></table></div>
 <div>
-<div class="img-ph">① demo chat（真跑图）<img src="images/demo-chat-done.png" alt="Completed answer: 1/2 live evidence"><img src="images/demo-chat-running.png" alt="Live progress while running" style="margin-top:10px"></div>
-<div class="img-ph" style="margin-top:10px">② Zetaris SQL 跑通（2 行 live）<img src="images/zetaris-query.png" alt="Zetaris SQL Workspace: repo_health 2 rows Success"></div>
-<div class="img-ph" style="margin-top:10px">③ Nightshift Providers：NVIDIA stored<img src="images/nightshift-provider.png" alt="Nightshift Providers: NVIDIA stored in daemon"></div>
+<div class="img-ph">Demo chat (real runs)<img src="images/demo-chat-done.png" alt="Completed answer: 1/2 live evidence"><img src="images/demo-chat-running.png" alt="Live progress while running" style="margin-top:10px"></div>
+<div class="img-ph" style="margin-top:10px">Zetaris SQL, 2 rows live<img src="images/zetaris-query.png" alt="Zetaris SQL Workspace: repo_health 2 rows Success"></div>
+<div class="img-ph" style="margin-top:10px">Nightshift Providers: NVIDIA stored<img src="images/nightshift-provider.png" alt="Nightshift Providers: NVIDIA stored in daemon"></div>
 </div>
 </div>
-<div class="notes">SPEAKER: 25s. 指着表念3命令可复现，指着截图说全是真artifact。如果还没截图，先空着讲viewer.html + trace。</div></div>
+<div class="notes">SPEAKER: 25s. Read the 3 reproduce commands off the table; every screenshot is a real artifact.</div></div>
 
 <!-- 6/6 FUTURE 居中收尾 -->
 <div class="slide center"><div class="k">5 · FUTURE</div><h2>Where this goes next — thank you</h2>
 <p class="mut">OSV vulnerabilities (needs POST adapter) + vuejs/core · Markovian shootouts · local lanes + rerank</p>
 <p><span class="mut">Repo, traces (<code>logs/*.jsonl</code>), and this deck reproduce from clean clone.</span></p>
-<div class="notes">SPEAKER: 15s. 诚实说limit + next，总时长~3min。按 N 显示备注讲。</div></div>
+<div class="notes">SPEAKER: 15s. State limits honestly, then next steps. Total about 3 minutes. Press N for notes.</div></div>
 
 <div class="nav">← → navigate · N notes · <span id="n"></span></div>
 <script>let i=0;const s=[...document.querySelectorAll('.slide')];
